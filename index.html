@@ -1,0 +1,1932 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>风险引擎 · 海外用工一人一卡系统</title>
+<style>
+  /* ============ 设计变量 ============ */
+  :root{
+    --primary:#DCA400;
+    --primary-dark:#C08F00;
+    --primary-soft:#FFF8E6;
+    --danger:#FA5151;
+    --text:#212529;
+    --text-2:#737687;
+    --text-3:#9AA0AA;
+    --border:#E0E3E7;
+    --border-2:#F0F2F5;
+    --bg:#EDF1F5;
+    --thead:#F4F7F9;
+    --stripe:#FBFCFD;
+    --radius:4px;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;background:var(--bg);color:var(--text);
+    font:13px/1.5 -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  button{font:inherit;color:inherit;}
+  ::-webkit-scrollbar{width:8px;height:8px;}
+  ::-webkit-scrollbar-thumb{background:#D3D8DF;border-radius:4px;}
+  ::-webkit-scrollbar-thumb:hover{background:#BFC5CE;}
+  ::-webkit-scrollbar-track{background:transparent;}
+
+  /* ============ 布局 ============ */
+  .app{display:flex;min-height:100vh;}
+  .sidebar{
+    position:sticky;top:0;flex:0 0 208px;width:208px;height:100vh;
+    background:#fff;border-right:1px solid #E9ECF0;display:flex;flex-direction:column;overflow:hidden;
+  }
+  .brand{
+    display:flex;align-items:center;gap:9px;height:56px;flex:0 0 56px;padding:0 16px;
+    border-bottom:1px solid var(--border-2);font-size:13px;font-weight:600;letter-spacing:0;
+    position:sticky;top:0;background:#fff;z-index:2;
+  }
+  .brand span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .brand-mark{
+    width:24px;height:24px;border-radius:6px;flex:0 0 24px;
+    background:#2F7BF3;display:grid;place-items:center;
+    box-shadow:0 2px 6px rgba(47,123,243,.28);
+  }
+  .brand-mark svg{width:14px;height:14px;stroke:#fff;}
+
+  .menu{flex:1 1 auto;min-height:0;overflow-y:auto;padding:3px 0 10px;}
+  .group-head{
+    display:flex;align-items:center;gap:9px;height:36px;padding:0 14px;
+    font-size:13px;color:#3B4049;cursor:pointer;user-select:none;
+  }
+  .group-head:hover{background:#FAFBFC;}
+  .group-head .g-icon{width:16px;height:16px;flex:0 0 16px;stroke:#7C838F;}
+  .group-head.gold .g-icon{stroke:var(--primary);}
+  .group-head .chev{margin-left:auto;width:12px;height:12px;stroke:#A8ADB8;transition:transform .18s;}
+  .group.collapsed .chev{transform:rotate(-90deg);}
+  .group.collapsed .sub{display:none;}
+  .sub{padding:0 0 2px;}
+  .item{
+    display:flex;align-items:center;height:30px;padding:0 12px 0 41px;
+    font-size:12.5px;color:#5B616C;cursor:pointer;position:relative;
+  }
+  .item:hover{background:#F7F9FB;color:var(--text);}
+  .item.active{background:#FFF7E4;color:#C38900;font-weight:600;}
+  .item.active::before{
+    content:"";position:absolute;left:0;top:7px;bottom:7px;width:3px;
+    background:var(--primary);border-radius:0 2px 2px 0;
+  }
+
+  .main{flex:1;min-width:0;display:flex;flex-direction:column;}
+  .topbar{
+    height:56px;flex:0 0 56px;background:#fff;display:flex;align-items:center;justify-content:flex-end;
+    gap:18px;padding:0 22px;border-bottom:1px solid #EDF0F3;
+  }
+  .icon-btn{
+    width:30px;height:30px;border:0;background:none;border-radius:5px;display:grid;place-items:center;
+    cursor:pointer;color:#6D7480;
+  }
+  .icon-btn:hover{background:#F4F6F8;color:var(--text);}
+  .user{display:flex;align-items:center;gap:8px;cursor:pointer;padding:4px 2px;border-radius:5px;}
+  .user:hover{background:#F7F9FB;}
+  .avatar{
+    width:26px;height:26px;border-radius:50%;background:#4A8BF5;display:grid;place-items:center;
+    color:#fff;font-size:12px;font-weight:600;
+  }
+  .user-name{font-size:13px;color:#3B4049;}
+  .user .chev{width:11px;height:11px;stroke:#A8ADB8;}
+
+  .content{padding:14px 16px 26px;display:flex;flex-direction:column;gap:12px;}
+  .page{display:none;flex-direction:column;gap:12px;}
+  .page.active{display:flex;}
+  .card{background:#fff;border-radius:6px;box-shadow:0 1px 3px rgba(17,24,39,.04);}
+
+  /* ============ 页头 ============ */
+  .page-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding:14px 20px;}
+  .page-head h1{margin:0;font-size:17.5px;font-weight:600;letter-spacing:.2px;line-height:1.35;}
+  .ph-sub{margin-top:4px;font-size:12.5px;color:#E0A21B;line-height:1.2;}
+  .ph-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:flex-end;padding-top:2px;}
+  .hint{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#8D93A1;white-space:nowrap;}
+  .hint svg{width:13px;height:13px;stroke:#A8ADB8;flex:0 0 13px;}
+
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:5px;height:32px;padding:0 14px;
+    border:1px solid transparent;border-radius:var(--radius);background:#fff;font-size:13px;
+    cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s,color .15s;
+  }
+  .btn svg{width:12px;height:12px;}
+  .btn-primary{background:var(--primary);color:#fff;}
+  .btn-primary:hover{background:var(--primary-dark);}
+  .btn-ghost{border-color:var(--border);color:#3B4049;}
+  .btn-ghost:hover{border-color:#C9CFD8;background:#FBFCFD;}
+  .btn-link{
+    border-color:var(--primary);color:var(--primary);background:#fff;height:30px;padding:0 12px;font-size:12.5px;
+  }
+  .btn-link:hover{background:var(--primary-soft);}
+  .btn-danger-outline{
+    border-color:rgba(250,81,81,.5);color:var(--danger);background:#fff;height:30px;padding:0 12px;
+  }
+  .btn-danger-outline:hover{background:#FFF4F4;border-color:var(--danger);}
+  .btn-danger{background:var(--danger);color:#fff;}
+  .btn-danger:hover{background:#E23C3C;}
+  .btn-sm{height:28px;padding:0 10px;font-size:12px;}
+  .link-btn{
+    border:0;background:none;padding:2px 0;font-size:12.5px;color:var(--primary);cursor:pointer;white-space:nowrap;
+  }
+  .link-btn:hover{text-decoration:underline;}
+  .link-btn.danger{color:var(--danger);font-weight:500;}
+  .link-btn.danger:hover{color:#D93A3A;}
+
+  /* ============ 筛选 ============ */
+  .filter{display:flex;align-items:center;gap:16px;padding:14px 20px 10px;}
+  .field{display:flex;align-items:center;gap:10px;flex:1;min-width:0;}
+  .field.wide{flex:1.2;}
+  .field > label{font-size:13px;color:#3B4049;white-space:nowrap;}
+  .control{position:relative;flex:1;min-width:0;}
+  .control .sel-arrow{
+    position:absolute;right:9px;top:50%;transform:translateY(-50%);pointer-events:none;
+    width:10px;height:10px;stroke:#A8ADB8;
+  }
+  input.inp,select.inp,textarea.inp{
+    width:100%;height:32px;border:1px solid var(--border);border-radius:var(--radius);
+    padding:0 10px;font-size:12.5px;color:var(--text);background:#fff;outline:none;
+    transition:border-color .15s,box-shadow .15s;font-family:inherit;
+  }
+  select.inp{appearance:none;padding-right:26px;color:var(--text-3);cursor:pointer;}
+  select.inp.filled{color:var(--text);}
+  input.inp::placeholder,textarea.inp::placeholder{color:#A8ADB8;}
+  input.inp:focus,select.inp:focus,textarea.inp:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(220,164,0,.12);}
+  input.inp:disabled{background:#F7F8FA;color:#8D93A1;cursor:not-allowed;}
+  textarea.inp{height:auto;padding:7px 10px;line-height:1.6;resize:vertical;}
+  .filter-actions{display:flex;align-items:center;gap:10px;margin-left:auto;}
+  .filter.wrap{flex-wrap:wrap;row-gap:10px;}
+  .filter.wrap .field{flex:1 1 210px;min-width:186px;gap:8px;}
+  .filter.wrap .field > label{font-size:12.5px;}
+  .filter.tight{padding:0;}
+  .filter.ro .field{flex:1 1 268px;min-width:208px;}
+  .filter.tight .inp{height:30px;font-size:12px;}
+  .filter.tight .btn{height:30px;font-size:12px;padding:0 12px;}
+
+  /* ============ 表格 ============ */
+  .dt{width:100%;border-collapse:collapse;table-layout:fixed;}
+  .dt th{
+    background:var(--thead);height:40px;padding:0 14px;font-size:12.5px;font-weight:500;
+    text-align:left;color:var(--text);border-right:1px solid #EBEEF2;border-bottom:1px solid #EBEEF2;
+  }
+  .dt th:last-child,.dt td:last-child{border-right:0;}
+  .dt td{
+    height:44px;padding:0 14px;font-size:12.5px;color:var(--text);
+    border-right:1px solid #F5F7F9;border-bottom:1px solid #F2F4F7;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  .dt tbody tr:nth-child(even){background:var(--stripe);}
+  .dt tbody tr:hover{background:#FFFAF0;}
+  .dt .num{padding-left:24px;}
+  .dt th.num{padding-left:24px;}
+  .ops{display:flex;align-items:center;gap:12px;}
+  .op{color:var(--primary);cursor:pointer;font-size:12.5px;}
+  .op:hover{text-decoration:underline;}
+  .op.del{color:var(--danger);}
+  .op.ro{cursor:default;}
+  .op.disabled{color:#C6CAD1;cursor:not-allowed;}
+  .op.disabled:hover{text-decoration:none;}
+  .op.ro:hover{text-decoration:none;}
+  .tag{
+    display:inline-flex;align-items:center;height:20px;padding:0 7px;border-radius:3px;
+    font-size:11.5px;background:#EAF7EF;color:#1F9254;border:1px solid #D7F0E1;
+  }
+  .tag.off{background:#F5F6F8;color:#8D93A1;border-color:#E8EAEE;}
+  .empty{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+    padding:38px 0 34px;color:#A8ADB8;font-size:12.5px;
+  }
+  .empty svg{width:74px;height:52px;opacity:.85;}
+
+  /* ============ 分页 ============ */
+  .pager{
+    display:flex;align-items:center;justify-content:flex-end;gap:10px;
+    padding:14px 20px;font-size:12.5px;color:#5B616C;
+  }
+  .pg-btn{
+    min-width:28px;height:28px;padding:0 7px;border:1px solid var(--border);border-radius:3px;
+    background:#fff;color:#5B616C;font-size:12.5px;cursor:pointer;display:grid;place-items:center;
+  }
+  .pg-btn:hover:not(:disabled){border-color:var(--primary);color:var(--primary);}
+  .pg-btn.active{border-color:var(--primary);color:var(--primary);font-weight:600;}
+  .pg-btn:disabled{color:#C7CCD4;cursor:not-allowed;}
+  .pg-select{
+    height:28px;border:1px solid var(--border);border-radius:3px;background:#fff;font-size:12.5px;
+    color:#5B616C;padding:0 22px 0 8px;appearance:none;cursor:pointer;
+    background-image:url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23A8ADB8' stroke-width='2.4'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 6px center;
+  }
+  .pg-jump{display:flex;align-items:center;gap:6px;}
+  .pg-jump input{width:42px;height:28px;text-align:center;border:1px solid var(--border);border-radius:3px;font-size:12.5px;outline:none;}
+
+  /* ============ 弹窗 ============ */
+  .overlay{
+    position:fixed;inset:0;z-index:100;background:rgba(17,24,39,.45);
+    display:flex;align-items:center;justify-content:center;padding:24px;
+    opacity:0;visibility:hidden;transition:opacity .18s ease,visibility .18s;
+  }
+  .overlay.show{opacity:1;visibility:visible;}
+  .modal{
+    background:#fff;border-radius:6px;box-shadow:0 16px 48px rgba(15,23,42,.22);
+    width:620px;max-width:100%;max-height:90vh;display:flex;flex-direction:column;
+    transform:translateY(10px) scale(.995);transition:transform .2s ease;
+  }
+  .overlay.show .modal{transform:none;}
+  .modal-head{
+    display:flex;align-items:center;gap:14px;padding:13px 18px;border-bottom:1px solid #EEF1F4;flex:0 0 auto;
+  }
+  .modal-head h2{margin:0;font-size:15px;font-weight:600;white-space:nowrap;}
+  .modal-sub{font-size:12px;color:var(--text-3);}
+  .head-actions{margin-left:auto;display:flex;align-items:center;gap:10px;min-width:0;}
+  .head-hint{display:flex;align-items:center;gap:8px;font-size:11.5px;color:#8D93A1;min-width:0;}
+  .head-hint span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .modal-close{
+    width:26px;height:26px;flex:0 0 26px;border:0;background:none;border-radius:4px;color:#9AA0AA;
+    font-size:17px;line-height:1;cursor:pointer;display:grid;place-items:center;
+  }
+  .modal-close:hover{background:#F4F6F8;color:#5B616C;}
+  .modal-body{padding:16px 18px;overflow:auto;flex:1 1 auto;min-height:0;}
+  .modal-foot{
+    display:flex;align-items:center;justify-content:center;gap:12px;padding:11px 18px;
+    border-top:1px solid #EEF1F4;flex:0 0 auto;background:#fff;
+  }
+  .modal-foot.between{justify-content:space-between;}
+  .foot-info{font-size:12px;color:var(--text-3);}
+
+  /* 分区标题 */
+  .sec-title{display:flex;align-items:center;gap:8px;margin:2px 0 12px;font-size:13.5px;font-weight:600;}
+  .sec-title::before{content:"";width:3px;height:14px;border-radius:1px;background:var(--primary);}
+  .sec-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
+  .sec-toggle{border:0;background:none;width:22px;height:22px;display:grid;place-items:center;cursor:pointer;color:#A8ADB8;border-radius:3px;}
+  .sec-toggle:hover{background:#F4F6F8;}
+  .sec-toggle svg{width:12px;height:12px;stroke:currentColor;transition:transform .18s;}
+  .sec-toggle.closed svg{transform:rotate(-90deg);}
+  .section + .section{margin-top:18px;}
+
+  /* 基本信息 键值 */
+  .kv-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px 40px;padding:2px 6px 4px;font-size:12.5px;}
+  .kv{display:flex;gap:2px;min-width:0;}
+  .kv .k{color:#6B7280;white-space:nowrap;}
+  .kv .v{color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .divider{height:1px;background:#F0F2F5;margin:14px 0;}
+
+  /* 表单 */
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px 26px;}
+  .form-item{display:flex;align-items:flex-start;gap:8px;min-width:0;}
+  .form-item > label{
+    flex:0 0 96px;width:96px;text-align:right;font-size:12.5px;color:#4E5462;line-height:32px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .form-item .req{color:var(--danger);margin-right:2px;}
+  .form-item .ctl{flex:1;min-width:0;position:relative;}
+  .form-item.full{grid-column:1 / -1;}
+  .form-item.full > label{line-height:32px;}
+  .form-item .ctl .sel-arrow{position:absolute;right:9px;top:16px;pointer-events:none;width:10px;height:10px;stroke:#A8ADB8;}
+  .date-wrap{position:relative;}
+  .date-wrap .cal{position:absolute;left:9px;top:50%;transform:translateY(-50%);width:13px;height:13px;stroke:#A8ADB8;pointer-events:none;}
+  .date-wrap input{padding-left:28px;color:var(--text);}
+  .upload-btn{
+    display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border:1px dashed var(--border);
+    border-radius:var(--radius);background:#fff;color:#5B616C;font-size:12.5px;cursor:pointer;
+  }
+  .upload-btn:hover{border-color:var(--primary);color:var(--primary);}
+  .upload-btn svg{width:12px;height:12px;stroke:currentColor;}
+  .field-tip{margin-top:5px;font-size:11.5px;color:#A8ADB8;line-height:1.5;}
+  .err{border-color:var(--danger)!important;box-shadow:0 0 0 2px rgba(250,81,81,.1)!important;}
+
+  /* 弹窗内表格 */
+  .dt.sm th{height:36px;font-size:12px;padding:0 10px;background:var(--thead);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .dt.gold th{background:#FFFBF0;border-right-color:#F3EAD3;border-bottom-color:#F3EAD3;}
+  .dt.sm td{height:38px;font-size:12px;padding:0 10px;white-space:nowrap;}
+  .dt.sm td.wrap{
+    white-space:normal;line-height:1.6;padding:9px 10px;word-break:break-word;
+    display:table-cell;
+  }
+  .dt.sm td.wrap{height:auto;padding:9px 10px;white-space:normal;word-break:break-word;line-height:1.6;}
+  .dt.sm .clamp2{
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+    white-space:normal;line-height:1.55;padding:8px 0;
+  }
+  .dt.sm th.mid,.dt.sm td.mid{text-align:center;}
+  .scroll-x{overflow-x:auto;}
+
+  /* 只读提示条 */
+  .ro-bar{
+    display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:9px 12px;margin-bottom:12px;
+    background:var(--primary-soft);border:1px solid #F4E3B0;border-radius:4px;font-size:12.5px;color:#7A6114;
+  }
+  .ro-chip{
+    display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 9px;border-radius:11px;
+    background:#fff;border:1px solid #EFD79A;color:#8A6A0B;font-weight:600;font-size:12px;
+  }
+  .ro-chip svg{width:11px;height:11px;stroke:currentColor;}
+  .ro-meta{color:#8A6A0B;}
+  .ro-tip{margin-left:auto;color:#A08B4E;font-size:11.5px;}
+
+  /* 提示 toast */
+  .toast{
+    position:fixed;left:50%;top:26px;transform:translate(-50%,-14px);z-index:9999;
+    display:flex;align-items:center;gap:8px;padding:9px 16px;border-radius:4px;
+    background:rgba(33,37,41,.92);color:#fff;font-size:12.5px;box-shadow:0 6px 20px rgba(0,0,0,.18);
+    opacity:0;visibility:hidden;transition:.22s;
+  }
+  .toast.show{opacity:1;visibility:visible;transform:translate(-50%,0);}
+  .toast svg{width:14px;height:14px;stroke:#7BE0A4;}
+  .toast.error svg{stroke:#FF9B9B;}
+
+  @media (max-width:1180px){
+    .sidebar{flex-basis:184px;width:184px;}
+    .hint{display:none;}
+    .filter{flex-wrap:wrap;}
+    .filter-actions{width:100%;justify-content:flex-end;margin-left:0;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- ============ 侧边栏 ============ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 9h16M4 15h16M9 4v16M15 4v16"/>
+        </svg>
+      </div>
+      <span>海外用工一人一卡系统</span>
+    </div>
+
+    <nav class="menu" id="menu">
+      <div class="group">
+        <div class="group-head" data-toggle>
+          <svg class="g-icon" viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7" rx="1.2"/><rect x="14" y="3" width="7" height="7" rx="1.2"/>
+            <rect x="3" y="14" width="7" height="7" rx="1.2"/><rect x="14" y="14" width="7" height="7" rx="1.2"/>
+          </svg>
+          <span>数据看板</span>
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+        <div class="sub">
+          <div class="item" data-menu="占位">公司看板</div>
+          <div class="item" data-menu="占位">区域看板</div>
+          <div class="item" data-menu="占位">单位看板</div>
+          <div class="item" data-menu="占位">项目看板</div>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="group-head" data-toggle>
+          <svg class="g-icon" viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2.8l8 4.1v10.2l-8 4.1-8-4.1V6.9z"/><path d="M4 6.9l8 4.1 8-4.1M12 11v10.2"/>
+          </svg>
+          <span>海外业务管理</span>
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+        <div class="sub">
+          <div class="item" data-menu="占位">项目台账</div>
+          <div class="item" data-menu="占位">项目人员台账</div>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="group-head" data-toggle>
+          <svg class="g-icon" viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 19v-1.6a3.4 3.4 0 0 0-3.4-3.4H6.4A3.4 3.4 0 0 0 3 17.4V19"/><circle cx="9.5" cy="7.5" r="3.5"/>
+            <path d="M21 19v-1.6a3.4 3.4 0 0 0-2.6-3.3M15.5 4.2a3.4 3.4 0 0 1 0 6.6"/>
+          </svg>
+          <span>分包人员管理</span>
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+        <div class="sub">
+          <div class="item" data-menu="占位">考勤管理</div>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="group-head" data-toggle>
+          <svg class="g-icon" viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2.8H7a2 2 0 0 0-2 2v14.4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7.8z"/><path d="M14 2.8v5h5"/>
+          </svg>
+          <span>出国准备信息</span>
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+        <div class="sub">
+          <div class="item" data-menu="train">出国培训信息</div>
+          <div class="item" data-menu="占位">出国护照信息</div>
+          <div class="item" data-menu="占位">出国签证信息</div>
+          <div class="item" data-menu="占位">出国许可信息</div>
+          <div class="item" data-menu="占位">健康档案信息</div>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="group-head" data-toggle>
+          <svg class="g-icon" viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="8" width="18" height="12" rx="2"/><path d="M8 8V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 13h18"/>
+          </svg>
+          <span>海外用工信息</span>
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+        <div class="sub">
+          <div class="item" data-menu="占位">技术转移信息</div>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="group-head" data-toggle>
+          <svg class="g-icon" viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/>
+          </svg>
+          <span>人员进出信息</span>
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+        <div class="sub">
+          <div class="item" data-menu="占位">休假台账</div>
+          <div class="item" data-menu="占位">注销签证信息</div>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="group-head gold" data-toggle>
+          <svg class="g-icon" viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3l7 3v5.4c0 4.4-2.9 8.4-7 9.6-4.1-1.2-7-5.2-7-9.6V6z"/><path d="M12 8.4v3.2M12 14.6v.1"/>
+          </svg>
+          <span>风险管理</span>
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+        <div class="sub">
+          <div class="item active" data-menu="risk">风险引擎</div>
+          <div class="item" data-menu="占位">风险展示</div>
+          <div class="item" data-menu="占位">合规知识库</div>
+        </div>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- ============ 主区域 ============ -->
+  <div class="main">
+    <header class="topbar">
+      <button class="icon-btn" title="通知" data-act="notify">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8a6 6 0 1 0-12 0c0 6.2-2 7-2 7h16s-2-.8-2-7"/><path d="M13.7 20a2 2 0 0 1-3.4 0"/>
+        </svg>
+      </button>
+      <div class="user" data-act="user">
+        <div class="avatar">陈</div>
+        <span class="user-name">陈玮</span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+    </header>
+
+    <div class="content">
+      <!-- ================= 页面一：风险引擎 ================= -->
+      <section class="page active" id="page-risk">
+        <div class="card page-head">
+          <div>
+            <h1>风险引擎</h1>
+            <div class="ph-sub">风险引擎</div>
+          </div>
+          <div class="ph-actions">
+            <button class="btn btn-danger-outline" data-act="open-lib">国别风险库</button>
+            <button class="btn btn-primary" data-act="add-country">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+              新增
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="filter">
+            <div class="field">
+              <label>国别:</label>
+              <div class="control">
+                <select class="inp" id="fCountry"></select>
+                <svg class="sel-arrow" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+              </div>
+            </div>
+            <div class="field">
+              <label>创建人:</label>
+              <div class="control">
+                <input class="inp" id="fCreator" placeholder="请输入">
+              </div>
+            </div>
+            <div class="filter-actions">
+              <button class="btn btn-primary" data-act="search-country">搜索</button>
+              <button class="btn btn-ghost" data-act="reset-country">重置</button>
+            </div>
+          </div>
+
+          <table class="dt">
+            <colgroup>
+              <col style="width:90px"><col><col style="width:22%"><col style="width:22%"><col style="width:190px">
+            </colgroup>
+            <thead>
+              <tr><th>序号</th><th>国别</th><th>状态</th><th>修改时间</th><th>操作</th></tr>
+            </thead>
+            <tbody id="countryBody"></tbody>
+          </table>
+          <div class="pager" id="countryPager"></div>
+        </div>
+      </section>
+
+      <!-- ================= 页面二：出国培训信息 ================= -->
+      <section class="page" id="page-train">
+        <div class="card page-head">
+          <div>
+            <h1>出国培训信息</h1>
+            <div class="ph-sub">出国培训信息</div>
+          </div>
+          <div class="ph-actions">
+            <button class="link-btn" data-act="train-tip">下载导入模板</button>
+            <button class="btn btn-primary btn-sm" data-act="train-tip">导入培训信息</button>
+            <button class="btn btn-primary btn-sm" data-act="train-tip">导入附件</button>
+            <button class="btn btn-ghost btn-sm" data-act="train-tip">导入记录</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="filter">
+            <div class="field wide">
+              <label>所属单位或项目经理部:</label>
+              <div class="control">
+                <select class="inp"><option>请选择</option><option>十五冶海外事业部</option><option>白俄罗斯项目部</option><option>哈萨克斯坦项目部</option></select>
+                <svg class="sel-arrow" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+              </div>
+            </div>
+            <div class="field">
+              <label>姓名:</label>
+              <div class="control"><input class="inp" placeholder="请输入"></div>
+            </div>
+            <div class="field">
+              <label>身份证号:</label>
+              <div class="control"><input class="inp" placeholder="请输入"></div>
+            </div>
+            <div class="filter-actions">
+              <button class="btn btn-primary" data-act="train-search">搜索</button>
+              <button class="btn btn-ghost" data-act="train-tip">重置</button>
+            </div>
+          </div>
+
+          <table class="dt">
+            <colgroup>
+              <col style="width:80px"><col style="width:14%"><col style="width:18%"><col style="width:12%"><col><col style="width:110px"><col style="width:230px">
+            </colgroup>
+            <thead>
+              <tr><th>序号</th><th>姓名</th><th>身份证号</th><th>员工类型</th><th>所属项目经理部</th><th>培训次数</th><th>操作</th></tr>
+            </thead>
+            <tbody id="trainBody"></tbody>
+          </table>
+          <div class="pager" id="trainPager"></div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<!-- ================== 弹窗：国别风险库（增删改查） ================== -->
+<div class="overlay" id="ovLib">
+  <div class="modal" style="width:1320px">
+    <div class="modal-head">
+      <h2>国别风险库</h2>
+      <span class="modal-sub">维护各国别风险指标、风险描述及备注</span>
+      <div class="head-actions">
+        <button class="btn btn-primary btn-sm" data-act="risk-add">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          新增风险
+        </button>
+        <button class="modal-close" data-close="ovLib">&times;</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="filter wrap tight" style="padding:0 0 12px">
+        <div class="field">
+          <label>国别:</label>
+          <div class="control">
+            <select class="inp" id="rmCountry"></select>
+            <svg class="sel-arrow" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+        </div>
+        <div class="field">
+          <label>阶段:</label>
+          <div class="control">
+            <select class="inp" id="rmStage"></select>
+            <svg class="sel-arrow" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+        </div>
+        <div class="field">
+          <label>风险类型:</label>
+          <div class="control">
+            <select class="inp" id="rmType"></select>
+            <svg class="sel-arrow" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+        </div>
+        <div class="field">
+          <label>适用范围:</label>
+          <div class="control">
+            <select class="inp" id="rmScope"></select>
+            <svg class="sel-arrow" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+        </div>
+        <div class="field">
+          <label>状态:</label>
+          <div class="control">
+            <select class="inp" id="rmStatus"></select>
+            <svg class="sel-arrow" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+        </div>
+        <div class="field">
+          <label>风险指标:</label>
+          <div class="control"><input class="inp" id="rmIndicator" placeholder="模糊搜索"></div>
+        </div>
+        <div class="field">
+          <label>风险描述:</label>
+          <div class="control"><input class="inp" id="rmPoint" placeholder="模糊搜索"></div>
+        </div>
+        <div class="field">
+          <label>备注:</label>
+          <div class="control"><input class="inp" id="rmRemark" placeholder="模糊搜索"></div>
+        </div>
+        <div class="filter-actions">
+          <button class="btn btn-primary" data-act="rm-search">搜索</button>
+          <button class="btn btn-ghost" data-act="rm-reset">重置</button>
+        </div>
+      </div>
+
+      <div class="scroll-x">
+        <table class="dt sm">
+          <colgroup>
+            <col style="width:48px"><col style="width:80px"><col style="width:104px"><col style="width:100px">
+            <col style="width:118px"><col style="width:148px"><col><col style="width:126px">
+            <col style="width:66px"><col style="width:96px"><col style="width:72px">
+          </colgroup>
+          <thead>
+            <tr>
+              <th>序号</th><th>国别</th><th>阶段</th><th>风险类型</th><th>适用范围</th>
+              <th>风险指标</th><th>风险描述</th><th>备注</th><th>状态</th><th>修改时间</th><th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="riskBody"></tbody>
+        </table>
+      </div>
+      <div class="pager" id="riskPager" style="padding:12px 0 0"></div>
+    </div>
+    <div class="modal-foot between">
+      <span class="foot-info" id="riskFootInfo"></span>
+      <button class="btn btn-ghost" data-close="ovLib">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================== 弹窗：新增 / 编辑风险 ================== -->
+<div class="overlay" id="ovRiskForm">
+  <div class="modal" style="width:660px">
+    <div class="modal-head">
+      <h2 id="riskFormTitle">新增风险</h2>
+      <div class="head-actions">
+        <button class="modal-close" data-close="ovRiskForm">&times;</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-item">
+          <label><span class="req">*</span>国别:</label>
+          <div class="ctl">
+            <select class="inp" id="rfCountry"></select>
+            <svg class="sel-arrow" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+        </div>
+        <div class="form-item">
+          <label><span class="req">*</span>阶段:</label>
+          <div class="ctl">
+            <select class="inp" id="rfStage"></select>
+            <svg class="sel-arrow" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+        </div>
+        <div class="form-item">
+          <label><span class="req">*</span>风险类型:</label>
+          <div class="ctl"><input class="inp" id="rfType" placeholder="如：用工许可" list="riskTypeList"></div>
+        </div>
+        <div class="form-item">
+          <label>适用范围:</label>
+          <div class="ctl">
+            <select class="inp" id="rfScope">
+              <option value="">请选择</option>
+              <option>项目部</option>
+              <option>人员</option>
+            </select>
+            <svg class="sel-arrow" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+        </div>
+        <div class="form-item">
+          <label><span class="req">*</span>风险指标:</label>
+          <div class="ctl"><input class="inp" id="rfIndicator" placeholder="请输入风险指标，如：工作／居留许可持证率"></div>
+        </div>
+        <div class="form-item">
+          <label>状态:</label>
+          <div class="ctl">
+            <select class="inp filled" id="rfStatus"><option>启用</option><option>停用</option></select>
+            <svg class="sel-arrow" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+        </div>
+        <div class="form-item full">
+          <label><span class="req">*</span>风险描述:</label>
+          <div class="ctl">
+            <textarea class="inp" id="rfPoint" rows="6" placeholder="请输入风险描述，可按“是否…／须…”分条描述监管要求"></textarea>
+          </div>
+        </div>
+        <div class="form-item full">
+          <label>备注:</label>
+          <div class="ctl"><textarea class="inp" id="rfRemark" rows="2" placeholder="选填"></textarea></div>
+        </div>
+      </div>
+      <datalist id="riskTypeList"></datalist>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close="ovRiskForm">&times; 取消</button>
+      <button class="btn btn-primary" data-act="risk-save">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================== 弹窗：查看国别风险库（只读） ================== -->
+<div class="overlay" id="ovView">
+  <div class="modal" style="width:1200px">
+    <div class="modal-head">
+      <h2>查看国别风险库</h2>
+      <div class="head-actions">
+        <div class="head-hint">
+          <span>请按照合规风险监管要求填报，具体要求参考风险库</span>
+        </div>
+        <button class="modal-close" data-close="ovView">&times;</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="ro-bar">
+        <span class="ro-chip">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>
+          <span id="roChip">当前用户所属国别：白俄罗斯</span>
+        </span>
+        <span class="ro-meta" id="roMeta">共 0 条国别风险</span>
+        <span class="ro-tip">如需维护请前往「国别风险库」</span>
+      </div>
+      <div class="filter wrap tight ro" style="padding:12px 0 10px">
+          <div class="field">
+            <label>阶段:</label>
+            <div class="control">
+              <select class="inp" id="roStage"></select>
+              <svg class="sel-arrow" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+          </div>
+          <div class="field">
+            <label>风险类型:</label>
+            <div class="control">
+              <select class="inp" id="roType"></select>
+              <svg class="sel-arrow" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+          </div>
+          <div class="field">
+            <label>适用范围:</label>
+            <div class="control">
+              <select class="inp" id="roScope"></select>
+              <svg class="sel-arrow" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+          </div>
+        <div class="field">
+          <label>风险指标:</label>
+          <div class="control"><input class="inp" id="roIndicator" placeholder="模糊搜索"></div>
+        </div>
+        <div class="field">
+          <label>风险描述:</label>
+          <div class="control"><input class="inp" id="roPoint" placeholder="模糊搜索"></div>
+        </div>
+        <div class="field">
+          <label>备注:</label>
+          <div class="control"><input class="inp" id="roRemark" placeholder="模糊搜索"></div>
+        </div>
+        <div class="filter-actions">
+          <button class="btn btn-primary" data-act="ro-search">搜索</button>
+          <button class="btn btn-ghost" data-act="ro-reset">重置</button>
+        </div>
+      </div>
+      <div class="scroll-x">
+        <table class="dt sm">
+          <colgroup>
+            <col style="width:52px"><col style="width:104px"><col style="width:116px"><col style="width:120px">
+            <col style="width:168px"><col><col style="width:206px"><col style="width:72px">
+          </colgroup>
+          <thead>
+            <tr><th>序号</th><th>阶段</th><th>风险类型</th><th>适用范围</th><th>风险指标</th><th>风险描述</th><th>备注</th><th>状态</th></tr>
+          </thead>
+          <tbody id="roBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close="ovView">&times; 关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================== 弹窗：新增 / 编辑国别 ================== -->
+<div class="overlay" id="ovCountryForm">
+  <div class="modal" style="width:480px">
+    <div class="modal-head">
+      <h2 id="countryFormTitle">新增国别风险</h2>
+      <div class="head-actions"><button class="modal-close" data-close="ovCountryForm">&times;</button></div>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid" style="grid-template-columns:1fr">
+        <div class="form-item">
+          <label><span class="req">*</span>国别:</label>
+          <div class="ctl">
+            <select class="inp" id="cfCountry"></select>
+            <svg class="sel-arrow" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+        </div>
+        <div class="form-item">
+          <label>创建人:</label>
+          <div class="ctl"><input class="inp" id="cfCreator" disabled></div>
+        </div>
+        <div class="form-item">
+          <label>状态:</label>
+          <div class="ctl">
+            <select class="inp filled" id="cfStatus"><option>打开</option><option>关闭</option></select>
+            <svg class="sel-arrow" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+        </div>
+      </div>
+      <div class="field-tip">新增国别后，可在「国别风险库」中为该国别录入风险指标与风险描述。</div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close="ovCountryForm">&times; 取消</button>
+      <button class="btn btn-primary" data-act="country-save">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================== 弹窗：出国培训信息（详情） ================== -->
+<div class="overlay" id="ovTrainDetail">
+  <div class="modal" style="width:960px">
+    <div class="modal-head">
+      <h2>出国培训信息</h2>
+      <div class="head-actions">
+        <div class="head-hint">
+          <span>请按照合规风险监管要求填报，具体要求参考风险库</span>
+          <button class="link-btn danger" data-act="view-lib">查看国别风险库</button>
+        </div>
+        <button class="modal-close" data-close="ovTrainDetail">&times;</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="section">
+        <div class="sec-title">基本信息</div>
+        <div class="kv-grid" id="tdBase"></div>
+      </div>
+      <div class="divider"></div>
+      <div class="section">
+        <div class="sec-title">
+          培训信息
+          <div class="sec-right">
+            <button class="btn btn-ghost btn-sm" data-act="train-add">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+              新增
+            </button>
+            <button class="sec-toggle" data-act="collapse-train">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+          </div>
+        </div>
+        <div id="tdTrainWrap">
+          <div class="scroll-x">
+            <table class="dt sm gold">
+              <colgroup>
+                <col style="width:48px"><col style="width:96px"><col style="width:106px"><col style="width:106px">
+                <col style="width:80px"><col style="width:110px"><col style="width:90px"><col style="width:90px">
+                <col><col style="width:66px">
+              </colgroup>
+              <thead>
+                <tr>
+                  <th class="mid">序号</th><th><span class="req" style="color:var(--danger)">*</span>前往国别</th>
+                  <th><span style="color:var(--danger)">*</span>培训开始日期</th><th><span style="color:var(--danger)">*</span>培训结束日期</th>
+                  <th><span style="color:var(--danger)">*</span>培训学时</th><th><span style="color:var(--danger)">*</span>培训内容</th>
+                  <th><span style="color:var(--danger)">*</span>培训类型</th><th><span style="color:var(--danger)">*</span>培训方式</th>
+                  <th><span style="color:var(--danger)">*</span>培训机构名称</th><th class="mid">操作</th>
+                </tr>
+              </thead>
+              <tbody id="tdTrainBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close="ovTrainDetail">&times; 取消</button>
+      <button class="btn btn-primary" data-act="train-detail-save">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================== 弹窗：新增培训信息 ================== -->
+<div class="overlay" id="ovTrainForm">
+  <div class="modal" style="width:780px">
+    <div class="modal-head">
+      <h2>新增培训信息</h2>
+      <div class="head-actions">
+        <div class="head-hint">
+          <span>请按照合规风险监管要求填报，具体要求参考风险库</span>
+          <button class="link-btn danger" data-act="view-lib">查看国别风险库</button>
+        </div>
+        <button class="modal-close" data-close="ovTrainForm">&times;</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-item">
+          <label><span class="req">*</span>前往国别:</label>
+          <div class="ctl">
+            <select class="inp" id="tfCountry"></select>
+            <svg class="sel-arrow" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+        </div>
+        <div class="form-item">
+          <label><span class="req">*</span>培训开始日期:</label>
+          <div class="ctl date-wrap">
+            <svg class="cal" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 11h18"/></svg>
+            <input class="inp" id="tfStart" type="date">
+          </div>
+        </div>
+        <div class="form-item">
+          <label><span class="req">*</span>培训结束日期:</label>
+          <div class="ctl date-wrap">
+            <svg class="cal" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 11h18"/></svg>
+            <input class="inp" id="tfEnd" type="date">
+          </div>
+        </div>
+        <div class="form-item">
+          <label><span class="req">*</span>培训学时:</label>
+          <div class="ctl"><input class="inp" id="tfHours" placeholder="请输入" inputmode="numeric"></div>
+        </div>
+        <div class="form-item">
+          <label><span class="req">*</span>培训内容:</label>
+          <div class="ctl"><input class="inp" id="tfContent" placeholder="请输入"></div>
+        </div>
+        <div class="form-item">
+          <label><span class="req">*</span>培训类型:</label>
+          <div class="ctl">
+            <select class="inp" id="tfType">
+              <option value="">请选择</option>
+              <option>入场安全教育</option><option>属地法律法规</option>
+              <option>岗位技能培训</option><option>合规与反腐败</option><option>语言培训</option>
+            </select>
+            <svg class="sel-arrow" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+        </div>
+        <div class="form-item">
+          <label><span class="req">*</span>培训方式:</label>
+          <div class="ctl">
+            <select class="inp" id="tfWay">
+              <option value="">请选择</option><option>线下集中</option><option>线上授课</option><option>现场实操</option>
+            </select>
+            <svg class="sel-arrow" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+        </div>
+        <div class="form-item">
+          <label><span class="req">*</span>培训机构名称:</label>
+          <div class="ctl"><input class="inp" id="tfOrg" placeholder="请输入"></div>
+        </div>
+        <div class="form-item">
+          <label>有效日期:</label>
+          <div class="ctl date-wrap">
+            <svg class="cal" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 11h18"/></svg>
+            <input class="inp" id="tfValid" type="date">
+          </div>
+        </div>
+        <div class="form-item full">
+          <label>附件:</label>
+          <div class="ctl">
+            <button class="upload-btn" data-act="train-tip">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7.5 9.5L12 5l4.5 4.5M12 5v11"/></svg>
+              点击上传
+            </button>
+          </div>
+        </div>
+        <div class="form-item full">
+          <label>备注:</label>
+          <div class="ctl"><textarea class="inp" id="tfRemark" rows="3" placeholder="请输入"></textarea></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close="ovTrainForm">&times; 取消</button>
+      <button class="btn btn-primary" data-act="train-save">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================== 弹窗：确认 ================== -->
+<div class="overlay" id="ovConfirm">
+  <div class="modal" style="width:400px">
+    <div class="modal-head"><h2 id="cfmTitle">提示</h2></div>
+    <div class="modal-body" style="padding:22px 18px;font-size:13px;color:#3B4049;line-height:1.7" id="cfmText"></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close="ovConfirm">&times; 取消</button>
+      <button class="btn btn-danger" data-act="cfm-ok">确认删除</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+  <span id="toastText">操作成功</span>
+</div>
+
+<script>
+/* =========================================================
+   数据层
+   ========================================================= */
+const CURRENT_USER = { name: '陈玮', country: '白俄罗斯', dept: '十五冶海外事业部', level: '集团合规管理员' };
+
+const COUNTRIES = ['白俄罗斯','哈萨克斯坦','印度尼西亚','刚果（金）','赞比亚','沙特阿拉伯','埃及','巴基斯坦','秘鲁','坦桑尼亚'];
+const STAGES = ['人员进场准备','海外用工管理','制度管理'];
+const SCOPE_TYPES = ['项目部','人员'];   // 适用范围字典
+
+let uid = 1000;
+const nid = () => 'R' + (++uid);
+
+/* 国别风险条目（初始数据源自《合规风险库》风险清单） */
+let risks = [
+  /* ---- 白俄罗斯 ---- */
+  { id:nid(), country:'白俄罗斯', stage:'人员进场准备', type:'用工计划', scope:'项目部', doc:'用工计划',
+    point:'是否向白俄罗斯劳动与社会保障部门报送用工计划。用工计划应包括：1.公司的人力资源需求：未来一年内公司所需岗位与人数；2.本地化目标与培训计划：中外籍员工与本地员工的数量比例、逐步减少外籍员工依赖的培训与技能转移安排；3.申请外籍职位的理由：说明该岗位必须由外籍员工担任的原因及本地市场无法满足的技能要求；4.外籍员工详细信息：职位、国籍、预计雇佣期限。',
+    status:'启用', updateTime:'2026-11-16' },
+  { id:nid(), country:'白俄罗斯', stage:'人员进场准备', type:'用工许可', scope:'自有、劳务、分包', doc:'工作许可',
+    point:'是否申请工作许可。外籍员工须由用工单位向白俄罗斯劳动与社会保障主管部门申请工作许可，取得许可后方可安排岗位，且岗位、职种须与许可内容一致。',
+    status:'启用', updateTime:'2026-11-16' },
+  { id:nid(), country:'白俄罗斯', stage:'人员进场准备', type:'用工许可', scope:'自有、劳务、分包', doc:'居留许可',
+    point:'是否申请居留许可。凭工作许可等文件，员工须在入境后通过移民部门办理临时居留许可，以合法在白俄罗斯长期停留和工作。',
+    status:'启用', updateTime:'2026-11-16' },
+  { id:nid(), country:'白俄罗斯', stage:'人员进场准备', type:'劳动合同要求', scope:'自有、劳务、分包', doc:'劳动合同（中俄双语）',
+    point:'是否签订符合属地要求的劳动合同。合同须以俄语或白俄罗斯语签订并具备中文对照，明确工作地点、岗位、薪酬、工作时间与休息休假；合同期限应与工作许可有效期保持一致，变更岗位须同步办理许可变更。',
+    status:'启用', updateTime:'2026-11-16' },
+  { id:nid(), country:'白俄罗斯', stage:'人员进场准备', type:'语言培训要求', scope:'自有、劳务、分包', doc:'语言培训记录',
+    point:'是否完成俄语／白俄罗斯语基础培训。进场前须组织属地语言与安全用语培训，留存培训签到、课时与考核记录，并将培训结果纳入上岗条件。',
+    status:'启用', updateTime:'2026-11-16' },
+  { id:nid(), country:'白俄罗斯', stage:'海外用工管理', type:'员工要求', scope:'自有、劳务、分包', doc:'无犯罪记录证明、健康证明',
+    point:'外籍员工是否提供无犯罪记录证明、健康证明及学历／职业资格的公证认证件（含俄语翻译）。证明文件须在有效期内，并随人员台账归档备查。',
+    status:'启用', updateTime:'2026-11-16' },
+  { id:nid(), country:'白俄罗斯', stage:'海外用工管理', type:'技术标准', scope:'项目部', doc:'资质证书、技术交底记录',
+    point:'特种作业人员是否持白俄罗斯认可的资质证书。涉及电气、焊接、起重、脚手架等岗位，须完成当地技术标准交底与实操考核，考核不合格不得上岗。',
+    status:'启用', updateTime:'2026-11-16' },
+  { id:nid(), country:'白俄罗斯', stage:'制度管理', type:'应急预案', scope:'项目部', doc:'应急预案、演练记录',
+    point:'是否建立境外安全与突发事件应急预案，覆盖人员撤离、医疗救治、治安事件与舆情应对流程，并按季度组织演练、留存演练记录与改进措施。',
+    status:'启用', updateTime:'2026-11-16' },
+  { id:nid(), country:'白俄罗斯', stage:'制度管理', type:'合规培训', scope:'属地化人员', doc:'培训记录',
+    point:'是否按季度开展属地法律法规与反腐败合规培训，覆盖管理人员与属地化员工，留存签到表、课件与考核结果，培训覆盖率纳入项目合规考核。',
+    status:'停用', updateTime:'2026-11-16' },
+
+  /* ---- 哈萨克斯坦 ---- */
+  { id:nid(), country:'哈萨克斯坦', stage:'人员进场准备', type:'用工计划', scope:'项目部', doc:'用工计划—吸引外籍劳动力许可',
+    point:'是否向当地劳动部门申请“吸引外籍劳动力许可”。申请材料应包括：1.申请信息：营业性质及申请外籍员工的理由；2.公司信息：注册资本、税务与社保缴纳情况；3.外籍雇员信息：护照、学历证书、工作履历、无犯罪记录、体检报告、劳动合同；4.本地员工信息：哈萨克斯坦公民与外籍员工的数量及比例，并证明已为本地居民保留相应岗位。',
+    status:'启用', updateTime:'2026-11-16' },
+  { id:nid(), country:'哈萨克斯坦', stage:'人员进场准备', type:'用工许可', scope:'自有、劳务、分包', doc:'工作许可、劳务许可',
+    point:'是否办理工作许可与劳务许可。外籍员工须在取得吸引外籍劳动力许可的配额内办理个人工作许可，并在许可标注的岗位与地区范围内从业。',
+    status:'启用', updateTime:'2026-11-16' },
+  { id:nid(), country:'哈萨克斯坦', stage:'海外用工管理', type:'劳动合同要求', scope:'自有、劳务、分包', doc:'劳动合同（哈语／俄语）',
+    point:'劳动合同是否在属地劳动部门备案。合同须使用哈萨克语或俄语版本，明确试用期、薪酬、工作时间、休假与终止条件，并与工作许可期限匹配。',
+    status:'启用', updateTime:'2026-11-16' },
+  { id:nid(), country:'哈萨克斯坦', stage:'海外用工管理', type:'人员资质', scope:'项目部', doc:'学历／资质双认证',
+    point:'外籍专业技术人员是否提供学历与职业资格的双认证文件，并通过属地主管部门或行业协会的技能确认；关键岗位须完成属地执业备案。',
+    status:'启用', updateTime:'2026-11-16' },
+  { id:nid(), country:'哈萨克斯坦', stage:'制度管理', type:'税务登记', scope:'项目部', doc:'税务登记证明',
+    point:'是否在当地税务机关完成纳税人登记并按期申报。涉及外籍员工个人所得税代扣代缴、社保缴费的，须留存申报与缴纳凭证。',
+    status:'启用', updateTime:'2026-11-16' },
+
+  /* ---- 印度尼西亚 ---- */
+  { id:nid(), country:'印度尼西亚', stage:'人员进场准备', type:'用工计划', scope:'项目部', doc:'RPTKA、DKPTKA',
+    point:'是否向劳工部门提交外籍员工使用计划（RPTKA），并按规定缴纳外籍员工使用补偿金（DKPTKA）。计划须载明岗位、人数、期限及本地员工配备方案。',
+    status:'启用', updateTime:'2026-11-16' },
+  { id:nid(), country:'印度尼西亚', stage:'人员进场准备', type:'用工许可', scope:'自有、劳务、分包', doc:'ITAS、IMTA',
+    point:'外籍员工是否取得有限居留许可（ITAS）与工作许可（IMTA），并由雇主完成外籍员工登记；许可到期前须提前办理延期，避免超期居留。',
+    status:'启用', updateTime:'2026-11-16' },
+  { id:nid(), country:'印度尼西亚', stage:'海外用工管理', type:'语言培训要求', scope:'自有、劳务、分包', doc:'培训记录',
+    point:'是否开展印尼语基础培训并安排本地员工担任岗位助手，落实技能转移义务；培训计划与实施记录须随项目台账归档。',
+    status:'启用', updateTime:'2026-11-16' },
+  { id:nid(), country:'印度尼西亚', stage:'海外用工管理', type:'劳动合同要求', scope:'自有、劳务、分包', doc:'劳动合同（印尼语）',
+    point:'劳动合同是否使用印尼语版本并向劳工部门备案；固定期限合同须符合期限上限、续签次数与补偿金规定。',
+    status:'启用', updateTime:'2026-11-16' },
+  { id:nid(), country:'印度尼西亚', stage:'制度管理', type:'合规培训', scope:'项目部', doc:'WLKP 报告、BPJS 凭证',
+    point:'是否按季度提交外籍员工报告（WLKP），并遵守属地最低工资与社会保障（BPJS）规定，按期缴纳社保费用并留存凭证。',
+    status:'启用', updateTime:'2026-11-16' },
+
+  /* ---- 刚果（金） ---- */
+  { id:nid(), country:'刚果（金）', stage:'人员进场准备', type:'用工计划', scope:'项目部', doc:'用工计划',
+    point:'是否向劳动和社会保障部及全国就业委员会（ONEM）提交用工计划，说明岗位数量、本地招聘安排与外籍人员比例，并附本地员工培训计划。',
+    status:'启用', updateTime:'2026-11-16' },
+  { id:nid(), country:'刚果（金）', stage:'人员进场准备', type:'用工许可', scope:'自有、劳务、分包', doc:'工作许可、居留卡',
+    point:'外籍员工是否取得工作许可与居留签证，并办理外国人登记卡；用工期间须保持证件有效，离境前完成签证注销或转移手续。',
+    status:'启用', updateTime:'2026-11-16' },
+  { id:nid(), country:'刚果（金）', stage:'海外用工管理', type:'员工要求', scope:'自有、劳务、分包', doc:'无犯罪记录、健康证明',
+    point:'是否提供经公证认证的无犯罪记录证明与健康证明（含疫苗接种记录），入境后按规定完成属地体检并备案。',
+    status:'启用', updateTime:'2026-11-16' },
+  { id:nid(), country:'刚果（金）', stage:'制度管理', type:'应急预案', scope:'项目部', doc:'应急预案、社区沟通记录',
+    point:'是否建立属地劳工纠纷处理与社区沟通机制，重大事项按规定报使领馆备案，并留存沟通与处置记录。',
+    status:'启用', updateTime:'2026-11-16' },
+
+  /* ---- 赞比亚 ---- */
+  { id:nid(), country:'赞比亚', stage:'人员进场准备', type:'用工计划', scope:'项目部', doc:'用工计划',
+    point:'是否向劳动局和移民局提交用工计划。用工计划应包括：1.公司的人力资源需求：未来一段时间内（通常是一年）公司所需的职位和数量；2.本地化目标和培训计划：目前公司中外籍员工和本地员工的数量和比例，计划未来如何通过培训和技能转移逐步减少对外籍员工的依赖；3.申请外籍职位的理由：说明为什么某些职位必须由外籍员工担任；4.外籍员工的详细信息：职位、国籍、预计雇佣期限等。',
+    status:'启用', updateTime:'2026-11-16' },
+  { id:nid(), country:'赞比亚', stage:'人员进场准备', type:'用工许可', scope:'自有、劳务、分包', doc:'工作许可',
+    point:'是否申请工作许可。企业必须代表员工向赞比亚入境事务处处长申请工作许可证，未取得许可不得安排上岗。',
+    status:'启用', updateTime:'2026-11-16' },
+  { id:nid(), country:'赞比亚', stage:'人员进场准备', type:'用工许可', scope:'自有、劳务、分包', doc:'居留许可',
+    point:'是否申请居留许可。凭工作许可证等文件，员工需通过赞比亚移民局网站在线申请相应类型的居留许可，以合法在赞长期停留和工作。',
+    status:'启用', updateTime:'2026-11-16' },
+  { id:nid(), country:'赞比亚', stage:'人员进场准备', type:'用工许可', scope:'自有、劳务、分包', doc:'工作签证',
+    point:'是否办理工作签证。虽然赞比亚移民局已将中国列入无需签证即可入境的国家名单，但免签并不保证可以入境，口岸移民官员拥有是否允许入境的最终决定权；靠旅游和商务免签企图来赞就业的人员可能被拒绝入境。',
+    status:'启用', updateTime:'2026-11-16' },
+  { id:nid(), country:'赞比亚', stage:'海外用工管理', type:'用工许可', scope:'自有、劳务、分包', doc:'工作签证台账',
+    point:'是否持有效期内的工签在赞比亚工作（风险提示）。不允许持商务签、访问签等其他签证在赞从事有报酬工作，用工单位须建立签证有效期台账并提前 30 天预警。',
+    status:'启用', updateTime:'2026-11-16' }
+];
+
+/* 风险指标 & 备注：按风险类型给出既有数据的默认值（新增时由表单录入） */
+const INDICATOR_BY_TYPE = {
+  '用工计划':'用工计划审批合规率',
+  '用工许可':'工作／居留许可持证率',
+  '劳动合同要求':'劳动合同签订与备案率',
+  '语言培训要求':'属地语言培训覆盖率',
+  '员工要求':'员工资质证明完备率',
+  '技术标准':'特种作业持证上岗率',
+  '应急预案':'应急预案备案与演练率',
+  '合规培训':'合规培训覆盖率',
+  '人员资质':'执业资格备案率',
+  '税务登记':'税务登记与申报及时率'
+};
+const REMARK_BY_TYPE = {
+  '用工计划':'用工计划须报属地劳动部门备案，随项目开工报告同步归档。',
+  '用工许可':'许可到期前 30 天预警，许可复印件随人员台账归档。',
+  '劳动合同要求':'中/属地双语合同由人力资源部留存，员工签字确认。',
+  '语言培训要求':'培训签到表与考核成绩由项目综合办归档。',
+  '员工要求':'证明材料有效期纳入人员台账动态更新。',
+  '技术标准':'交底与考核记录由项目技术负责人签字确认。',
+  '应急预案':'预案报业主及使领馆备案，演练影像资料留存。',
+  '合规培训':'培训课件与考核结果报公司合规部备案。',
+  '人员资质':'双认证文件翻译公证后归档。',
+  '税务登记':'申报与缴纳凭证按月归档财务部。'
+};
+risks.forEach(r => {
+  if(!r.indicator) r.indicator = INDICATOR_BY_TYPE[r.type] || '属地合规事项达标率';
+  if(!r.remark) r.remark = REMARK_BY_TYPE[r.type] || '相关材料随项目合规台账归档备查。';
+  // 适用范围字典归一：项目部 / 人员
+  if(r.scope && r.scope !== '项目部') r.scope = '人员';
+});
+
+/* 风险引擎列表（国别维度） */
+let countryRows = [
+  { id:'C1', country:'白俄罗斯',   creator:'陈玮', status:'打开', updateTime:'2026-11-16' },
+  { id:'C2', country:'哈萨克斯坦', creator:'陈玮', status:'打开', updateTime:'2026-11-16' },
+  { id:'C3', country:'印度尼西亚', creator:'陈玮', status:'打开', updateTime:'2026-11-16' },
+  { id:'C4', country:'刚果（金）', creator:'李伟', status:'打开', updateTime:'2026-11-16' },
+  { id:'C5', country:'赞比亚',     creator:'王芳', status:'打开', updateTime:'2026-11-16' }
+];
+
+/* 出国培训人员 */
+const trainRows = [
+  { id:'T01', name:'晏渤',     idno:'360621******9031', type:'自有员工', dept:'--', count:0 },
+  { id:'T02', name:'屠微',     idno:'420920******3054', type:'自有员工', dept:'--', count:0 },
+  { id:'T03', name:'柯腾云',   idno:'429005******1835', type:'自有员工', dept:'--', count:1 },
+  { id:'T04', name:'翁志斌',   idno:'360821******9013', type:'自有员工', dept:'--', count:0 },
+  { id:'T05', name:'郁志成',   idno:'362321******7013', type:'自有员工', dept:'--', count:1 },
+  { id:'T06', name:'赵兴祥',   idno:'360892******5019', type:'自有员工', dept:'--', count:1 },
+  { id:'T07', name:'王诗萍',   idno:'421020******3651', type:'自有员工', dept:'--', count:1 },
+  { id:'T08', name:'欧阳卓鑫', idno:'519021******1831', type:'自有员工', dept:'--', count:1 },
+  { id:'T09', name:'刘青山',   idno:'360721******6779', type:'自有员工', dept:'--', count:1 },
+  { id:'T10', name:'王均勤',   idno:'612726******3015', type:'自有员工', dept:'--', count:1 },
+  { id:'T11', name:'邓建平',   idno:'430124******2217', type:'自有员工', dept:'白俄罗斯项目部', count:2 },
+  { id:'T12', name:'钟文凯',   idno:'360502******4418', type:'劳务分包', dept:'白俄罗斯项目部', count:1 },
+  { id:'T13', name:'龙艳霞',   idno:'420106******6026', type:'自有员工', dept:'哈萨克斯坦项目部', count:2 },
+  { id:'T14', name:'付立国',   idno:'132201******1173', type:'自有员工', dept:'哈萨克斯坦项目部', count:1 },
+  { id:'T15', name:'黄一鸣',   idno:'362421******5349', type:'劳务分包', dept:'印度尼西亚项目部', count:0 },
+  { id:'T16', name:'覃志强',   idno:'450722******7810', type:'自有员工', dept:'印度尼西亚项目部', count:2 },
+  { id:'T17', name:'吕嘉伟',   idno:'320621******0937', type:'自有员工', dept:'刚果（金）项目部', count:1 },
+  { id:'T18', name:'周诗雨',   idno:'510107******2264', type:'自有员工', dept:'赞比亚项目部', count:1 },
+  { id:'T19', name:'谢明辉',   idno:'350802******6715', type:'劳务分包', dept:'赞比亚项目部', count:0 },
+  { id:'T20', name:'贺文杰',   idno:'610302******3358', type:'自有员工', dept:'赞比亚项目部', count:1 },
+  { id:'T21', name:'宋丽君',   idno:'360102******8842', type:'自有员工', dept:'--', count:0 }
+];
+const trainRecords = {}; // personId -> [ {country,start,end,hours,content,type,way,org} ]
+
+/* =========================================================
+   工具
+   ========================================================= */
+const $  = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+const today = () => { const d = new Date(); const p = n => String(n).padStart(2,'0'); return d.getFullYear() + '-' + p(d.getMonth()+1) + '-' + p(d.getDate()); };
+
+let toastTimer = null;
+function toast(msg, type){
+  const el = $('#toast');
+  $('#toastText').textContent = msg;
+  el.classList.toggle('error', type === 'error');
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+let __ovZ = 100;
+function openOverlay(id){
+  const ov = document.getElementById(id);
+  if(!ov) return;
+  // 后打开的弹窗始终压在已打开弹窗之上（如培训弹窗内再打开国别风险库）
+  ov.style.zIndex = String(++__ovZ);
+  ov.classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function closeOverlay(id){
+  const ov = document.getElementById(id);
+  if(!ov) return;
+  ov.classList.remove('show');
+  ov.style.zIndex = '';
+  if(!$$('.overlay.show').length){
+    document.body.style.overflow = '';
+    __ovZ = 100;
+  }
+}
+
+/* =========================================================
+   页面一：风险引擎列表
+   ========================================================= */
+const pageA = { page:1, size:10, country:'', creator:'' };
+
+function renderCountrySelectOptions(){
+  const opts = ['<option value="">请选择</option>']
+    .concat(COUNTRIES.map(c => `<option value="${esc(c)}">${esc(c)}</option>`)).join('');
+  $('#fCountry').innerHTML = opts;
+  $('#fCountry').classList.remove('filled');
+}
+
+function filteredCountries(){
+  return countryRows.filter(r =>
+    (!pageA.country || r.country === pageA.country) &&
+    (!pageA.creator || r.creator.includes(pageA.creator))
+  );
+}
+
+function renderCountries(){
+  const list = filteredCountries();
+  const total = list.length;
+  const maxPage = Math.max(1, Math.ceil(total / pageA.size));
+  if(pageA.page > maxPage) pageA.page = maxPage;
+  const start = (pageA.page - 1) * pageA.size;
+  const rows = list.slice(start, start + pageA.size);
+
+  $('#countryBody').innerHTML = rows.length ? rows.map((r, i) => `
+    <tr>
+      <td class="num">${start + i + 1}</td>
+      <td>${esc(r.country)}</td>
+      <td>${r.status === '打开' ? '打开' : '<span class="tag off">关闭</span>'}</td>
+      <td>${esc(r.updateTime)}</td>
+      <td>
+        <div class="ops">
+          <span class="op ro">详情</span>
+          <span class="op ro">编辑</span>
+          <span class="op ro del">删除</span>
+        </div>
+      </td>
+    </tr>`).join('') : `<tr><td colspan="5" style="height:180px;border-right:0">
+      <div class="empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#D7DBE2" stroke-width="1.2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v16"/></svg>
+        暂无数据
+      </div></td></tr>`;
+
+  $('#countryPager').innerHTML = `
+    <span>共 ${total} 条</span>
+    <button class="pg-btn" data-act="a-prev" ${pageA.page === 1 ? 'disabled' : ''}>&lsaquo;</button>
+    ${Array.from({length:maxPage}, (_,i) => `<button class="pg-btn ${pageA.page === i+1 ? 'active' : ''}" data-act="a-page" data-page="${i+1}">${i+1}</button>`).join('')}
+    <button class="pg-btn" data-act="a-next" ${pageA.page === maxPage ? 'disabled' : ''}>&rsaquo;</button>
+    <select class="pg-select" id="aSize">
+      <option value="10" ${pageA.size===10?'selected':''}>10条/页</option>
+      <option value="20" ${pageA.size===20?'selected':''}>20条/页</option>
+    </select>`;
+}
+
+/* =========================================================
+   国别风险库（管理，增删改查）
+   ========================================================= */
+const rm = { page:1, size:8, country:'', stage:'', type:'', scope:'', status:'', indicator:'', point:'', remark:'' };
+
+function fillCountryOpts(sel, withAll, allText, placeholder){
+  sel.innerHTML = (withAll ? `<option value="">${allText || '全部'}</option>` : '')
+    + (placeholder ? `<option value="">${placeholder}</option>` : '')
+    + COUNTRIES.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
+}
+function fillStageOpts(sel, withAll){
+  sel.innerHTML = (withAll ? '<option value="">全部</option>' : '')
+    + STAGES.map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join('');
+}
+
+function uniqList(list){ return [...new Set(list.filter(Boolean))]; }
+function fillAllOpts(sel, list, allText){
+  sel.innerHTML = `<option value="">${allText || '全部'}</option>`
+    + list.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+}
+const like = (val, kw) => !kw || String(val || '').toLowerCase().includes(kw.toLowerCase());
+
+function filteredRisks(){
+  return risks.filter(r =>
+    (!rm.country  || r.country === rm.country) &&
+    (!rm.stage    || r.stage === rm.stage) &&
+    (!rm.type     || r.type === rm.type) &&
+    (!rm.scope   || (r.scope || '') === rm.scope) &&
+    (!rm.status   || r.status === rm.status) &&
+    like(r.indicator, rm.indicator) &&
+    like(r.point, rm.point) &&
+    like(r.remark, rm.remark)
+  );
+}
+
+function renderRisks(){
+  const list = filteredRisks();
+  const total = list.length;
+  const maxPage = Math.max(1, Math.ceil(total / rm.size));
+  if(rm.page > maxPage) rm.page = maxPage;
+  const start = (rm.page - 1) * rm.size;
+  const rows = list.slice(start, start + rm.size);
+
+  $('#riskBody').innerHTML = rows.length ? rows.map((r, i) => `
+    <tr>
+      <td>${start + i + 1}</td>
+      <td>${esc(r.country)}</td>
+      <td>${esc(r.stage)}</td>
+      <td title="${esc(r.type)}">${esc(r.type)}</td>
+      <td title="${esc(r.scope || '')}">${esc(r.scope || '--')}</td>
+      <td title="${esc(r.indicator || '')}">${esc(r.indicator || '--')}</td>
+      <td title="${esc(r.point)}">${esc(r.point)}</td>
+      <td title="${esc(r.remark || '')}">${esc(r.remark || '--')}</td>
+      <td>${r.status === '启用' ? '<span class="tag">启用</span>' : '<span class="tag off">停用</span>'}</td>
+      <td>${esc(r.updateTime)}</td>
+      <td>
+        <div class="ops">
+          <span class="op" data-act="risk-edit" data-id="${r.id}">编辑</span>
+          ${r.status === '启用'
+            ? '<span class="op del disabled" title="启用状态的风险不可删除，请先停用">删除</span>'
+            : `<span class="op del" data-act="risk-del" data-id="${r.id}">删除</span>`}
+        </div>
+      </td>
+    </tr>`).join('') : `<tr><td colspan="11" style="border-right:0;height:200px">
+      <div class="empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#D7DBE2" stroke-width="1.2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v16"/></svg>
+        暂无风险数据，请点击「新增风险」录入
+      </div></td></tr>`;
+
+  $('#riskPager').innerHTML = `
+    <span>共 ${total} 条</span>
+    <button class="pg-btn" data-act="r-prev" ${rm.page === 1 ? 'disabled' : ''}>&lsaquo;</button>
+    ${Array.from({length:maxPage}, (_,i) => `<button class="pg-btn ${rm.page === i+1 ? 'active' : ''}" data-act="r-page" data-page="${i+1}">${i+1}</button>`).join('')}
+    <button class="pg-btn" data-act="r-next" ${rm.page === maxPage ? 'disabled' : ''}>&rsaquo;</button>
+    <select class="pg-select" id="rSize">
+      <option value="8" ${rm.size===8?'selected':''}>8条/页</option>
+      <option value="15" ${rm.size===15?'selected':''}>15条/页</option>
+    </select>`;
+
+  $('#riskFootInfo').textContent = `当前筛选：${rm.country || '全部国别'} · ${rm.stage || '全部阶段'} · 共 ${total} 条`;
+}
+
+/* 打开国别风险库管理弹窗 */
+function openLib(){
+  rm.country = ''; rm.stage = ''; rm.type = ''; rm.scope = ''; rm.status = '';
+  rm.indicator = ''; rm.point = ''; rm.remark = ''; rm.page = 1;
+
+  fillCountryOpts($('#rmCountry'), true, '全部国别');
+  fillStageOpts($('#rmStage'), true);
+  fillAllOpts($('#rmType'), uniqList(risks.map(r => r.type)).sort());
+  fillAllOpts($('#rmScope'), SCOPE_TYPES);
+  fillAllOpts($('#rmStatus'), ['启用','停用']);
+  ['#rmCountry','#rmStage','#rmType','#rmScope','#rmStatus'].forEach(x => {
+    $(x).value = ''; $(x).classList.remove('filled');
+  });
+  ['#rmIndicator','#rmPoint','#rmRemark'].forEach(x => { $(x).value = ''; });
+
+  renderRisks();
+  openOverlay('ovLib');
+}
+
+/* 新增 / 编辑风险 */
+let editingRiskId = null;
+function openRiskForm(id){
+  editingRiskId = id || null;
+  const r = id ? risks.find(x => x.id === id) : null;
+  $('#riskFormTitle').textContent = r ? '编辑风险' : '新增风险';
+  fillCountryOpts($('#rfCountry'), false);
+  fillStageOpts($('#rfStage'), false);
+  $('#rfCountry').value = r ? r.country : (rm.country || CURRENT_USER.country);
+  $('#rfStage').value = r ? r.stage : STAGES[0];
+  $('#rfType').value = r ? r.type : '';
+  $('#rfIndicator').value = r ? (r.indicator || '') : '';
+  $('#rfScope').value = r ? (r.scope || '') : '';
+  $('#rfStatus').value = r ? r.status : '启用';
+  $('#rfPoint').value = r ? r.point : '';
+  $('#rfRemark').value = r && r.remark ? r.remark : '';
+  $$('#ovRiskForm .inp').forEach(el => el.classList.remove('err'));
+  openOverlay('ovRiskForm');
+}
+
+function saveRisk(){
+  const country = $('#rfCountry').value;
+  const stage = $('#rfStage').value;
+  const type = $('#rfType').value.trim();
+  const indicator = $('#rfIndicator').value.trim();
+  const point = $('#rfPoint').value.trim();
+
+  let bad = null;
+  if(!country) bad = $('#rfCountry');
+  else if(!type) bad = $('#rfType');
+  else if(!indicator) bad = $('#rfIndicator');
+  else if(!point) bad = $('#rfPoint');
+  if(bad){ bad.classList.add('err'); bad.focus(); toast('请完整填写带 * 的必填项', 'error'); return; }
+
+  const payload = {
+    country, stage, type, indicator,
+    scope: $('#rfScope').value.trim(),
+    status: $('#rfStatus').value,
+    point,
+    remark: $('#rfRemark').value.trim(),
+    updateTime: today()
+  };
+
+  if(editingRiskId){
+    const idx = risks.findIndex(x => x.id === editingRiskId);
+    risks[idx] = Object.assign({}, risks[idx], payload);
+    toast('风险条目已更新');
+  }else{
+    risks.unshift(Object.assign({ id:nid(), scope:'', doc:'' }, payload));
+    if(!countryRows.some(c => c.country === country)){
+      countryRows.unshift({ id:'C' + Date.now(), country, creator:CURRENT_USER.name, status:'打开', updateTime:today() });
+    }
+    toast('风险条目已新增');
+  }
+  rm.page = 1;
+  renderRisks();
+  renderCountries();
+  closeOverlay('ovRiskForm');
+}
+
+/* 删除确认 */
+let confirmCb = null;
+function askConfirm(text, cb){
+  $('#cfmText').innerHTML = text;
+  confirmCb = cb;
+  openOverlay('ovConfirm');
+}
+
+/* =========================================================
+   查看国别风险库（只读）
+   ========================================================= */
+const ro = { country:'', stage:'', type:'', scope:'', indicator:'', point:'', remark:'' };
+
+function renderRoView(){
+  const list = risks.filter(r =>
+    r.country === ro.country &&
+    (!ro.stage  || r.stage === ro.stage) &&
+    (!ro.type   || r.type === ro.type) &&
+    (!ro.scope || (r.scope || '') === ro.scope) &&
+    like(r.indicator, ro.indicator) &&
+    like(r.point, ro.point) &&
+    like(r.remark, ro.remark)
+  );
+  $('#roMeta').textContent = `共 ${list.length} 条国别风险`;
+
+  $('#roBody').innerHTML = list.length ? list.map((r, i) => `
+    <tr>
+      <td>${i + 1}</td>
+      <td>${esc(r.stage)}</td>
+      <td>${esc(r.type)}</td>
+      <td>${esc(r.scope || '--')}</td>
+      <td>${esc(r.indicator || '--')}</td>
+      <td class="wrap">${esc(r.point)}</td>
+      <td class="wrap">${esc(r.remark || '--')}</td>
+      <td>${r.status === '启用' ? '<span class="tag">启用</span>' : '<span class="tag off">停用</span>'}</td>
+    </tr>`).join('') : `<tr><td colspan="8" style="border-right:0;height:210px">
+      <div class="empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#D7DBE2" stroke-width="1.2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v16"/></svg>
+        该国有别暂无风险数据
+      </div></td></tr>`;
+}
+
+function openView(country){
+  ro.country = country || CURRENT_USER.country;
+  ro.stage = ''; ro.type = ''; ro.scope = '';
+  ro.indicator = ''; ro.point = ''; ro.remark = '';
+
+  $('#roChip').textContent = country
+    ? '筛选国别：' + ro.country
+    : '当前用户所属国别：' + ro.country;
+
+  fillStageOpts($('#roStage'), true);
+  fillAllOpts($('#roType'), uniqList(risks.filter(r => r.country === ro.country).map(r => r.type)).sort());
+  fillAllOpts($('#roScope'), SCOPE_TYPES);
+  ['#roStage','#roType','#roScope'].forEach(x => { $(x).value = ''; $(x).classList.remove('filled'); });
+  ['#roIndicator','#roPoint','#roRemark'].forEach(x => { $(x).value = ''; });
+
+  renderRoView();
+  openOverlay('ovView');
+}
+
+/* =========================================================
+   国别行 新增 / 编辑
+   ========================================================= */
+let editingCountryId = null;
+function openCountryForm(id){
+  editingCountryId = id || null;
+  const row = id ? countryRows.find(r => r.id === id) : null;
+  $('#countryFormTitle').textContent = row ? '编辑国别风险' : '新增国别风险';
+  fillCountryOpts($('#cfCountry'), false, '', '请选择');
+  $('#cfCountry').value = row ? row.country : '';
+  $('#cfCountry').classList.toggle('filled', !!row);
+  $('#cfCreator').value = row ? row.creator : CURRENT_USER.name;
+  $('#cfStatus').value = row ? row.status : '打开';
+  openOverlay('ovCountryForm');
+}
+
+function saveCountry(){
+  const country = $('#cfCountry').value;
+  if(!country){ $('#cfCountry').classList.add('err'); toast('请选择国别', 'error'); return; }
+
+  if(editingCountryId){
+    const row = countryRows.find(r => r.id === editingCountryId);
+    row.country = country;
+    row.status = $('#cfStatus').value;
+    row.updateTime = today();
+    toast('国别信息已更新');
+  }else{
+    if(countryRows.some(r => r.country === country)){ toast('该国有别已存在', 'error'); return; }
+    countryRows.unshift({ id:'C' + Date.now(), country, creator:CURRENT_USER.name, status:$('#cfStatus').value, updateTime:today() });
+    pageA.page = 1;
+    toast('国别已新增，可前往「国别风险库」录入风险信息');
+  }
+  renderCountries();
+  closeOverlay('ovCountryForm');
+}
+
+/* =========================================================
+   页面二：出国培训信息
+   ========================================================= */
+const pageB = { page:1, size:10 };
+
+function renderTrain(){
+  const list = trainRows;
+  const total = 21; // 与原型截图一致的总条数
+  const rows = list.slice((pageB.page - 1) * pageB.size, pageB.page * pageB.size);
+
+  $('#trainBody').innerHTML = rows.map((r, i) => `
+    <tr>
+      <td class="num">${(pageB.page - 1) * pageB.size + i + 1}</td>
+      <td>${esc(r.name)}</td>
+      <td>${esc(r.idno)}</td>
+      <td>${esc(r.type)}</td>
+      <td>${esc(r.dept)}</td>
+      <td>${(trainRecords[r.id] || []).length || r.count}</td>
+      <td>
+        <div class="ops">
+          <span class="op" data-act="train-detail" data-id="${r.id}">详情</span>
+          <span class="op" data-act="train-detail" data-id="${r.id}">维护</span>
+          <span class="op" data-act="train-add" data-id="${r.id}">新增培训信息</span>
+        </div>
+      </td>
+    </tr>`).join('');
+
+  const pages = [1,2,3];
+  $('#trainPager').innerHTML = `
+    <span>共 ${total} 条</span>
+    <button class="pg-btn" data-act="b-prev" ${pageB.page === 1 ? 'disabled' : ''}>&lsaquo;</button>
+    ${pages.map(p => `<button class="pg-btn ${pageB.page === p ? 'active' : ''}" data-act="b-page" data-page="${p}">${p}</button>`).join('')}
+    <button class="pg-btn" data-act="b-next" ${pageB.page === 3 ? 'disabled' : ''}>&rsaquo;</button>
+    <select class="pg-select"><option>10条/页</option><option>20条/页</option></select>
+    <span class="pg-jump">跳至 <input value="${pageB.page}" id="bJump"> 页</span>`;
+}
+
+let currentPerson = null;
+function openTrainDetail(id){
+  const p = trainRows.find(x => x.id === id);
+  if(!p) return;
+  currentPerson = p;
+  $('#tdBase').innerHTML = `
+    <div class="kv"><span class="k">姓名：</span><span class="v">${esc(p.name)}</span></div>
+    <div class="kv"><span class="k">身份证号：</span><span class="v">${esc(p.idno)}</span></div>
+    <div class="kv"><span class="k">员工类型：</span><span class="v">${esc(p.type)}</span></div>
+    <div class="kv"><span class="k">所属项目经理部：</span><span class="v">${esc(p.dept)}</span></div>`;
+  renderTrainRecords();
+  openOverlay('ovTrainDetail');
+}
+
+function renderTrainRecords(){
+  const recs = (trainRecords[currentPerson.id] || []);
+  if(!recs.length){
+    $('#tdTrainBody').innerHTML = `<tr><td colspan="10" style="border-right:0;height:170px">
+      <div class="empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#DDE1E7" stroke-width="1.1">
+          <path d="M3.5 8.5l4-3h9l4 3v8h-17z"/><path d="M3.5 8.5h17"/><path d="M9 13.5h6"/>
+        </svg>
+        暂无数据
+      </div></td></tr>`;
+    return;
+  }
+  $('#tdTrainBody').innerHTML = recs.map((r, i) => `
+    <tr>
+      <td class="mid">${i + 1}</td>
+      <td>${esc(r.country)}</td>
+      <td>${esc(r.start)}</td>
+      <td>${esc(r.end)}</td>
+      <td>${esc(r.hours)}</td>
+      <td>${esc(r.content)}</td>
+      <td>${esc(r.type)}</td>
+      <td>${esc(r.way)}</td>
+      <td>${esc(r.org)}</td>
+      <td><div class="ops"><span class="op del" data-act="train-rec-del" data-idx="${i}">删除</span></div></td>
+    </tr>`).join('');
+}
+
+function openTrainForm(){
+  fillCountryOpts($('#tfCountry'), false, '', '请选择');
+  $('#tfCountry').value = '';
+  $('#tfCountry').classList.remove('filled');
+  ['#tfStart','#tfEnd','#tfHours','#tfContent','#tfOrg','#tfValid','#tfRemark'].forEach(s => { $(s).value = ''; });
+  $('#tfType').value = ''; $('#tfWay').value = '';
+  $$('#ovTrainForm .inp').forEach(el => el.classList.remove('err'));
+  openOverlay('ovTrainForm');
+}
+
+function saveTrain(){
+  const rules = [
+    ['#tfCountry','select'], ['#tfStart','text'], ['#tfEnd','text'], ['#tfHours','text'],
+    ['#tfContent','text'], ['#tfType','select'], ['#tfWay','select'], ['#tfOrg','text']
+  ];
+  let firstBad = null;
+  rules.forEach(([sel]) => {
+    const el = $(sel);
+    if(!el.value){ el.classList.add('err'); if(!firstBad) firstBad = el; }
+    else el.classList.remove('err');
+  });
+  if(firstBad){ firstBad.focus(); toast('请完整填写带 * 的必填项', 'error'); return; }
+
+  if(parseInt($('#tfStart').value.replace(/-/g,''),10) > parseInt($('#tfEnd').value.replace(/-/g,''),10)){
+    $('#tfEnd').classList.add('err'); toast('结束日期不能早于开始日期','error'); return;
+  }
+
+  const rec = {
+    country: $('#tfCountry').value,
+    start: $('#tfStart').value, end: $('#tfEnd').value,
+    hours: $('#tfHours').value, content: $('#tfContent').value.trim(),
+    type: $('#tfType').value, way: $('#tfWay').value,
+    org: $('#tfOrg').value.trim(), valid: $('#tfValid').value,
+    remark: $('#tfRemark').value.trim()
+  };
+  const pid = currentPerson ? currentPerson.id : trainRows[0].id;
+  (trainRecords[pid] = trainRecords[pid] || []).push(rec);
+  closeOverlay('ovTrainForm');
+  if(currentPerson){ renderTrainRecords(); }
+  renderTrain();
+  toast('培训信息已保存');
+}
+
+/* =========================================================
+   事件绑定
+   ========================================================= */
+/* 侧边栏 */
+$('#menu').addEventListener('click', e => {
+  const head = e.target.closest('[data-toggle]');
+  if(head){ head.parentElement.classList.toggle('collapsed'); return; }
+  const item = e.target.closest('.item');
+  if(!item) return;
+  const kind = item.dataset.menu;
+  if(kind === '占位'){ toast('该模块原型暂未开放'); return; }
+  $$('.item').forEach(i => i.classList.remove('active'));
+  item.classList.add('active');
+  if(kind === 'risk'){ showPage('page-risk'); }
+  if(kind === 'train'){ showPage('page-train'); }
+});
+
+function showPage(id){
+  $$('.page').forEach(p => p.classList.toggle('active', p.id === id));
+  window.scrollTo({ top:0 });
+}
+
+/* 全局行为（含弹窗内按钮） */
+document.addEventListener('click', e => {
+  const closer = e.target.closest('[data-close]');
+  if(closer){ closeOverlay(closer.dataset.close); return; }
+
+  const el = e.target.closest('[data-act]');
+  if(!el) return;
+  const act = el.dataset.act;
+  const id  = el.dataset.id;
+
+  switch(act){
+    /* ---- 顶部 / 通用 ---- */
+    case 'notify': toast('暂无新的风险预警'); break;
+    case 'user':   toast(CURRENT_USER.name + ' · ' + CURRENT_USER.country + ' · ' + CURRENT_USER.level); break;
+    case 'train-tip': toast('原型演示：该功能暂未接入数据'); break;
+
+    case 'open-lib': openLib(); break;
+    case 'view-lib': openView(); break;
+    case 'add-country': openCountryForm(); break;
+    case 'country-save': saveCountry(); break;
+
+    /* ---- 风险引擎列表 ---- */
+    case 'search-country':
+      pageA.country = $('#fCountry').value;
+      pageA.creator = $('#fCreator').value.trim();
+      pageA.page = 1;
+      renderCountries();
+      toast('已按条件筛选');
+      break;
+    case 'reset-country':
+      pageA.country = ''; pageA.creator = ''; pageA.page = 1;
+      $('#fCountry').value = ''; $('#fCreator').value = '';
+      renderCountries();
+      break;
+    case 'a-prev': pageA.page--; renderCountries(); break;
+    case 'a-next': pageA.page++; renderCountries(); break;
+    case 'a-page': pageA.page = +el.dataset.page; renderCountries(); break;
+    case 'country-view': {
+      const row = countryRows.find(r => r.id === id);
+      openView(row.country);
+      break;
+    }
+    case 'country-edit': openCountryForm(id); break;
+    case 'country-del': {
+      const row = countryRows.find(r => r.id === id);
+      askConfirm(
+        `确认删除国别「<b>${esc(row.country)}</b>」？<br><span style="color:#8D93A1;font-size:12px">该操作会同时移除其下属 ${risks.filter(r=>r.country===row.country).length} 条国别风险数据，且不可恢复。</span>`,
+        () => {
+          countryRows = countryRows.filter(r => r.id !== id);
+          risks = risks.filter(r => r.country !== row.country);
+          renderCountries();
+          toast('已删除');
+        }
+      );
+      break;
+    }
+
+    /* ---- 国别风险库 ---- */
+    case 'risk-add': openRiskForm(); break;
+    case 'risk-edit': openRiskForm(id); break;
+    case 'risk-save': saveRisk(); break;
+    case 'risk-del': {
+      const r = risks.find(x => x.id === id);
+      if(!r) break;
+      if(r.status === '启用'){ toast('启用状态的风险不可删除，请先停用', 'error'); break; }
+      askConfirm(`确认删除「<b>${esc(r.country)} · ${esc(r.type)}</b>」这条风险数据？删除后不可恢复。`, () => {
+        risks = risks.filter(x => x.id !== id);
+        renderRisks();
+        renderCountries();
+        toast('已删除');
+      });
+      break;
+    }
+    case 'rm-search':
+      rm.country = $('#rmCountry').value;
+      rm.stage = $('#rmStage').value;
+      rm.type = $('#rmType').value;
+      rm.scope = $('#rmScope').value;
+      rm.status = $('#rmStatus').value;
+      rm.indicator = $('#rmIndicator').value.trim();
+      rm.point = $('#rmPoint').value.trim();
+      rm.remark = $('#rmRemark').value.trim();
+      rm.page = 1;
+      renderRisks();
+      break;
+    case 'rm-reset':
+      rm.country = ''; rm.stage = ''; rm.type = ''; rm.scope = ''; rm.status = '';
+      rm.indicator = ''; rm.point = ''; rm.remark = ''; rm.page = 1;
+      ['#rmCountry','#rmStage','#rmType','#rmScope','#rmStatus'].forEach(x => {
+        $(x).value = ''; $(x).classList.remove('filled');
+      });
+      ['#rmIndicator','#rmPoint','#rmRemark'].forEach(x => { $(x).value = ''; });
+      renderRisks();
+      break;
+    case 'ro-search':
+      ro.stage = $('#roStage').value;
+      ro.type = $('#roType').value;
+      ro.scope = $('#roScope').value;
+      ro.indicator = $('#roIndicator').value.trim();
+      ro.point = $('#roPoint').value.trim();
+      ro.remark = $('#roRemark').value.trim();
+      renderRoView();
+      break;
+    case 'ro-reset':
+      ro.stage = ''; ro.type = ''; ro.scope = '';
+      ro.indicator = ''; ro.point = ''; ro.remark = '';
+      ['#roStage','#roType','#roScope'].forEach(x => { $(x).value = ''; $(x).classList.remove('filled'); });
+      ['#roIndicator','#roPoint','#roRemark'].forEach(x => { $(x).value = ''; });
+      renderRoView();
+      break;
+    case 'r-prev': rm.page--; renderRisks(); break;
+    case 'r-next': rm.page++; renderRisks(); break;
+    case 'r-page': rm.page = +el.dataset.page; renderRisks(); break;
+
+    /* ---- 出国培训 ---- */
+    case 'train-detail': openTrainDetail(id); break;
+    case 'train-add':
+      if(id){ currentPerson = trainRows.find(x => x.id === id); }
+      openTrainForm();
+      break;
+    case 'train-save': saveTrain(); break;
+    case 'train-detail-save':
+      closeOverlay('ovTrainDetail');
+      toast('培训信息已保存');
+      break;
+    case 'collapse-train': {
+      el.classList.toggle('closed');
+      const wrap = $('#tdTrainWrap');
+      wrap.style.display = el.classList.contains('closed') ? 'none' : '';
+      break;
+    }
+    case 'train-rec-del': {
+      const idx = +el.dataset.idx;
+      askConfirm('确认删除该条培训记录？', () => {
+        trainRecords[currentPerson.id].splice(idx, 1);
+        renderTrainRecords();
+        renderTrain();
+        toast('已删除');
+      });
+      break;
+    }
+    case 'train-search': toast('已按条件筛选'); break;
+
+    /* ---- 确认框 ---- */
+    case 'cfm-ok':
+      if(confirmCb) confirmCb();
+      confirmCb = null;
+      closeOverlay('ovConfirm');
+      break;
+  }
+});
+
+/* 下拉/分页的 change 事件 */
+document.addEventListener('change', e => {
+  if(e.target.id === 'aSize'){ pageA.size = +e.target.value; pageA.page = 1; renderCountries(); }
+  if(e.target.id === 'rSize'){ rm.size = +e.target.value; rm.page = 1; renderRisks(); }
+  if(e.target.id === 'bJump'){
+    const p = Math.min(3, Math.max(1, +e.target.value || 1));
+    pageB.page = p; renderTrain();
+  }
+  if(['fCountry','rmCountry','rmStage','rmType','rmScope','rmStatus','roStage','roType','roScope','rfCountry','rfStage','rfScope','rfStatus','tfType','tfWay','cfCountry'].includes(e.target.id)){
+    e.target.classList.toggle('filled', !!e.target.value);
+  }
+});
+
+/* 遮罩层点击关闭 */
+$$('.overlay').forEach(ov => {
+  ov.addEventListener('mousedown', e => { if(e.target === ov) closeOverlay(ov.id); });
+});
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape'){
+    const open = $$('.overlay.show');
+    if(open.length) closeOverlay(open[open.length - 1].id);
+  }
+});
+
+/* 输入框去红边 */
+document.addEventListener('input', e => {
+  if(e.target.classList.contains('err') && e.target.value) e.target.classList.remove('err');
+});
+
+/* =========================================================
+   初始化
+   ========================================================= */
+(function init(){
+  renderCountrySelectOptions();
+  renderCountries();
+
+  fillCountryOpts($('#rmCountry'), true, '全部国别');
+  fillStageOpts($('#rmStage'), true);
+  fillCountryOpts($('#cfCountry'), false, '', '请选择');
+  fillCountryOpts($('#tfCountry'), false, '', '请选择');
+  $('#tfCountry').value = '';
+
+  $('#riskTypeList').innerHTML = ['用工计划','用工许可','语言培训要求','劳动合同要求','员工要求','技术标准','人员资质','背景要求','应急预案','合规培训','税务登记']
+    .map(t => `<option value="${t}">`).join('');
+
+  $('#rmCountry').classList.remove('filled');
+  $('#rmStage').classList.remove('filled');
+
+  renderRisks();
+  renderTrain();
+
+  /* 菜单超出可视高度时，将当前选中项滚动到可见区域 */
+  const menu = $('.menu');
+  const active = $('.item.active');
+  if(active && menu.scrollHeight > menu.clientHeight){
+    const mr = menu.getBoundingClientRect();
+    const ar = active.getBoundingClientRect();
+    if(ar.bottom > mr.bottom) menu.scrollTop += ar.bottom - mr.bottom + 18;
+  }
+})();
+</script>
+</body>
+</html>
