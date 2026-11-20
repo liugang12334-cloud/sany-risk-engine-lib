@@ -256,6 +256,44 @@
   .modal-foot.between{justify-content:space-between;}
   .foot-info{font-size:12px;color:var(--text-3);}
 
+  /* 批量导入 */
+  .btn-plain{
+    border:0;background:none;color:#4A5059;height:28px;padding:0 6px;font-size:12px;
+    display:inline-flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;border-radius:var(--radius);
+  }
+  .btn-plain:hover{background:#F4F6F8;color:#212529;}
+  .btn-plain.gold{color:var(--primary);}
+  .btn-plain.gold:hover{background:var(--primary-soft);color:var(--primary-dark);}
+  .up-zone{
+    border:1px dashed #D9DEE5;border-radius:6px;background:#FBFCFD;
+    padding:36px 20px 32px;text-align:center;cursor:pointer;
+    transition:border-color .15s,background .15s;
+  }
+  .up-zone:hover,.up-zone.dragover{border-color:var(--primary);background:#FFFCF3;}
+  .up-zone svg{width:26px;height:26px;stroke:var(--primary);}
+  .up-title{margin-top:10px;font-size:13.5px;color:#3B4049;}
+  .up-sub{margin-top:7px;font-size:12px;color:#9AA0AA;}
+  .up-table{width:100%;border-collapse:collapse;margin-top:16px;font-size:12.5px;table-layout:fixed;}
+  .up-table th{
+    height:40px;padding:0 12px;text-align:left;font-weight:600;color:#3B4049;
+    background:#F4F7F9;border:1px solid #ECF0F3;font-size:12.5px;white-space:nowrap;
+  }
+  .up-table td{height:44px;padding:0 12px;border:1px solid #ECF0F3;color:#3B4049;}
+  .up-table .c{text-align:center;}
+  .up-empty{color:#A8ADB8;text-align:center;}
+  .up-name{display:flex;align-items:center;gap:7px;min-width:0;}
+  .up-name svg{width:14px;height:14px;stroke:#2E8B57;flex:0 0 14px;}
+  .up-name span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .up-status{font-size:12.5px;}
+  .up-status.wait{color:#8D93A1;}
+  .up-status.doing{color:var(--primary);}
+  .up-status.done{color:#25A05B;}
+  .up-status.fail{color:var(--danger);}
+  .up-del{border:0;background:none;color:var(--danger);font-size:12.5px;cursor:pointer;padding:2px 0;}
+  .up-del:hover{text-decoration:underline;}
+  .up-note{margin-top:10px;font-size:11.5px;color:#9AA0AA;line-height:1.7;}
+  .up-note b{color:#3B4049;font-weight:500;}
+
   /* 分区标题 */
   .sec-title{display:flex;align-items:center;gap:8px;margin:2px 0 12px;font-size:13.5px;font-weight:600;}
   .sec-title::before{content:"";width:3px;height:14px;border-radius:1px;background:var(--primary);}
@@ -590,8 +628,10 @@
   <div class="modal" style="width:1320px">
     <div class="modal-head">
       <h2>国别风险库</h2>
-      <span class="modal-sub">维护各国别风险指标、风险描述及备注</span>
+      <span class="modal-sub">维护各国别风险研判、风险提示及备注</span>
       <div class="head-actions">
+        <button class="btn-plain" data-act="dl-template">下载模板</button>
+        <button class="btn-plain gold" data-act="import-open">批量导入</button>
         <button class="btn btn-primary btn-sm" data-act="risk-add">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
           新增风险
@@ -637,11 +677,11 @@
           </div>
         </div>
         <div class="field">
-          <label>风险指标:</label>
+          <label>风险研判:</label>
           <div class="control"><input class="inp" id="rmIndicator" placeholder="模糊搜索"></div>
         </div>
         <div class="field">
-          <label>风险描述:</label>
+          <label>风险提示:</label>
           <div class="control"><input class="inp" id="rmPoint" placeholder="模糊搜索"></div>
         </div>
         <div class="field">
@@ -664,7 +704,7 @@
           <thead>
             <tr>
               <th>序号</th><th>国别</th><th>阶段</th><th>风险类型</th><th>适用范围</th>
-              <th>风险指标</th><th>风险描述</th><th>备注</th><th>状态</th><th>修改时间</th><th>操作</th>
+              <th>风险研判</th><th>风险提示</th><th>备注</th><th>状态</th><th>修改时间</th><th>操作</th>
             </tr>
           </thead>
           <tbody id="riskBody"></tbody>
@@ -720,8 +760,8 @@
           </div>
         </div>
         <div class="form-item">
-          <label><span class="req">*</span>风险指标:</label>
-          <div class="ctl"><input class="inp" id="rfIndicator" placeholder="请输入风险指标，如：工作／居留许可持证率"></div>
+          <label><span class="req">*</span>风险研判:</label>
+          <div class="ctl"><input class="inp" id="rfIndicator" placeholder="请输入风险研判，如：工作／居留许可持证率"></div>
         </div>
         <div class="form-item">
           <label>状态:</label>
@@ -731,9 +771,9 @@
           </div>
         </div>
         <div class="form-item full">
-          <label><span class="req">*</span>风险描述:</label>
+          <label><span class="req">*</span>风险提示:</label>
           <div class="ctl">
-            <textarea class="inp" id="rfPoint" rows="6" placeholder="请输入风险描述，可按“是否…／须…”分条描述监管要求"></textarea>
+            <textarea class="inp" id="rfPoint" rows="6" placeholder="请输入风险提示，可按“是否…／须…”分条描述监管要求"></textarea>
           </div>
         </div>
         <div class="form-item full">
@@ -794,11 +834,11 @@
             </div>
           </div>
         <div class="field">
-          <label>风险指标:</label>
+          <label>风险研判:</label>
           <div class="control"><input class="inp" id="roIndicator" placeholder="模糊搜索"></div>
         </div>
         <div class="field">
-          <label>风险描述:</label>
+          <label>风险提示:</label>
           <div class="control"><input class="inp" id="roPoint" placeholder="模糊搜索"></div>
         </div>
         <div class="field">
@@ -813,11 +853,11 @@
       <div class="scroll-x">
         <table class="dt sm">
           <colgroup>
-            <col style="width:52px"><col style="width:104px"><col style="width:116px"><col style="width:120px">
-            <col style="width:168px"><col><col style="width:206px"><col style="width:72px">
+            <col style="width:52px"><col style="width:112px"><col style="width:124px"><col style="width:110px">
+            <col style="width:186px"><col><col style="width:230px">
           </colgroup>
           <thead>
-            <tr><th>序号</th><th>阶段</th><th>风险类型</th><th>适用范围</th><th>风险指标</th><th>风险描述</th><th>备注</th><th>状态</th></tr>
+            <tr><th>序号</th><th>阶段</th><th>风险类型</th><th>适用范围</th><th>风险研判</th><th>风险提示</th><th>备注</th></tr>
           </thead>
           <tbody id="roBody"></tbody>
         </table>
@@ -857,7 +897,7 @@
           </div>
         </div>
       </div>
-      <div class="field-tip">新增国别后，可在「国别风险库」中为该国别录入风险指标与风险描述。</div>
+      <div class="field-tip">新增国别后，可在「国别风险库」中为该国别录入风险研判与风险提示。</div>
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost" data-close="ovCountryForm">&times; 取消</button>
@@ -1025,6 +1065,44 @@
   </div>
 </div>
 
+<!-- ================== 弹窗：批量导入 ================== -->
+<div class="overlay" id="ovImport">
+  <div class="modal" style="width:760px">
+    <div class="modal-head">
+      <h2>批量导入</h2>
+      <div class="head-actions">
+        <button class="modal-close" data-close="ovImport">&times;</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="up-zone" id="upZone">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/>
+        </svg>
+        <div class="up-title">点击或拖拽文件到此区域上传</div>
+        <div class="up-sub">限制 1 个文件，支持 .xlsx,.xls 格式</div>
+        <input type="file" id="upInput" accept=".xlsx,.xls" style="display:none">
+      </div>
+      <table class="up-table">
+        <colgroup>
+          <col><col style="width:110px"><col style="width:110px"><col style="width:80px">
+        </colgroup>
+        <thead>
+          <tr><th>文件名</th><th>大小</th><th>状态</th><th>操作</th></tr>
+        </thead>
+        <tbody id="upBody"></tbody>
+      </table>
+      <div class="up-note" id="upNote">
+        请先点击「下载模板」，按模板表头填写国别、阶段、风险类型、适用范围、风险研判、风险提示、备注与状态；单次最多上传 1 个文件。
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close="ovImport">取消</button>
+      <button class="btn btn-primary" data-act="up-start">开始上传</button>
+    </div>
+  </div>
+</div>
+
 <!-- ================== 弹窗：确认 ================== -->
 <div class="overlay" id="ovConfirm">
   <div class="modal" style="width:400px">
@@ -1152,7 +1230,7 @@ let risks = [
     status:'启用', updateTime:'2026-11-16' }
 ];
 
-/* 风险指标 & 备注：按风险类型给出既有数据的默认值（新增时由表单录入） */
+/* 风险研判 & 备注：按风险类型给出既有数据的默认值（新增时由表单录入） */
 const INDICATOR_BY_TYPE = {
   '用工计划':'用工计划审批合规率',
   '用工许可':'工作／居留许可持证率',
@@ -1490,6 +1568,7 @@ const ro = { country:'', stage:'', type:'', scope:'', indicator:'', point:'', re
 
 function renderRoView(){
   const list = risks.filter(r =>
+    r.status !== '停用' &&
     r.country === ro.country &&
     (!ro.stage  || r.stage === ro.stage) &&
     (!ro.type   || r.type === ro.type) &&
@@ -1509,8 +1588,7 @@ function renderRoView(){
       <td>${esc(r.indicator || '--')}</td>
       <td class="wrap">${esc(r.point)}</td>
       <td class="wrap">${esc(r.remark || '--')}</td>
-      <td>${r.status === '启用' ? '<span class="tag">启用</span>' : '<span class="tag off">停用</span>'}</td>
-    </tr>`).join('') : `<tr><td colspan="8" style="border-right:0;height:210px">
+    </tr>`).join('') : `<tr><td colspan="7" style="border-right:0;height:210px">
       <div class="empty">
         <svg viewBox="0 0 24 24" fill="none" stroke="#D7DBE2" stroke-width="1.2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v16"/></svg>
         该国有别暂无风险数据
@@ -1732,6 +1810,10 @@ document.addEventListener('click', e => {
     case 'train-tip': toast('原型演示：该功能暂未接入数据'); break;
 
     case 'open-lib': openLib(); break;
+    case 'dl-template': downloadTemplate(); break;
+    case 'import-open': openImport(); break;
+    case 'up-start': startImport(); break;
+    case 'up-remove': importFile = null; importState = 'none'; renderUpTable(); break;
     case 'view-lib': openView(); break;
     case 'add-country': openCountryForm(); break;
     case 'country-save': saveCountry(); break;
@@ -1895,6 +1977,443 @@ document.addEventListener('keydown', e => {
 document.addEventListener('input', e => {
   if(e.target.classList.contains('err') && e.target.value) e.target.classList.remove('err');
 });
+
+/* =========================================================
+   批量导入：模板下载 / 上传 / xlsx 解析
+   ========================================================= */
+const IMPORT_HEADERS = ['国别','阶段','风险类型','适用范围','风险研判','风险提示','备注','状态'];
+const TEMPLATE_SAMPLE = [
+  ['白俄罗斯','人员进场准备','用工许可','人员','工作／居留许可持证率',
+   '是否申请工作许可，外籍员工须由用工单位向白俄罗斯劳动部门申报；许可到期前 30 天预警。','许可复印件随人员台账归档。','启用'],
+  ['哈萨克斯坦','海外用工管理','应急预案','项目部','应急预案备案与演练率',
+   '是否建立境外安全与突发事件应急预案，并按要求报业主、使领馆备案。','预案与演练记录归档备查。','启用']
+];
+const FIELD_ALIAS = {
+  country:   ['国别','国家'],
+  stage:     ['阶段'],
+  type:      ['风险类型','类型'],
+  scope:     ['适用范围','人员类别'],
+  indicator: ['风险研判','风险指标'],
+  point:     ['风险提示','风险描述','合规风险点','风险点'],
+  remark:    ['备注'],
+  status:    ['状态']
+};
+
+/* ---------- CRC32 + 最小 ZIP（store，用于生成 xlsx） ---------- */
+const CRC_TABLE = (() => {
+  const t = new Uint32Array(256);
+  for(let n = 0; n < 256; n++){
+    let c = n;
+    for(let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+    t[n] = c >>> 0;
+  }
+  return t;
+})();
+function crc32(u8){
+  let c = 0xFFFFFFFF;
+  for(let i = 0; i < u8.length; i++) c = CRC_TABLE[(c ^ u8[i]) & 0xFF] ^ (c >>> 8);
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+function zipStore(files){
+  const enc = new TextEncoder();
+  const locals = [], centrals = [];
+  let offset = 0;
+  files.forEach(f => {
+    const name = enc.encode(f.name);
+    const data = enc.encode(f.data);
+    const crc = crc32(data);
+
+    const lh = new Uint8Array(30 + name.length);
+    const lv = new DataView(lh.buffer);
+    lv.setUint32(0, 0x04034b50, true);
+    lv.setUint16(4, 20, true);
+    lv.setUint16(6, 0x0800, true);
+    lv.setUint16(8, 0, true);
+    lv.setUint16(10, 0, true);
+    lv.setUint16(12, 0, true);
+    lv.setUint32(14, crc, true);
+    lv.setUint32(18, data.length, true);
+    lv.setUint32(22, data.length, true);
+    lv.setUint16(26, name.length, true);
+    lv.setUint16(28, 0, true);
+    lh.set(name, 30);
+    locals.push(lh, data);
+
+    const ch = new Uint8Array(46 + name.length);
+    const cv = new DataView(ch.buffer);
+    cv.setUint32(0, 0x02014b50, true);
+    cv.setUint16(4, 20, true);
+    cv.setUint16(6, 20, true);
+    cv.setUint16(8, 0x0800, true);
+    cv.setUint16(10, 0, true);
+    cv.setUint16(12, 0, true);
+    cv.setUint16(14, 0, true);
+    cv.setUint32(16, crc, true);
+    cv.setUint32(20, data.length, true);
+    cv.setUint32(24, data.length, true);
+    cv.setUint16(28, name.length, true);
+    cv.setUint16(30, 0, true);
+    cv.setUint16(32, 0, true);
+    cv.setUint16(34, 0, true);
+    cv.setUint16(36, 0, true);
+    cv.setUint32(38, 0, true);
+    cv.setUint32(42, offset, true);
+    ch.set(name, 46);
+    centrals.push(ch);
+
+    offset += lh.length + data.length;
+  });
+
+  const cdSize = centrals.reduce((n, c) => n + c.length, 0);
+  const eocd = new Uint8Array(22);
+  const ev = new DataView(eocd.buffer);
+  ev.setUint32(0, 0x06054b50, true);
+  ev.setUint16(8, files.length, true);
+  ev.setUint16(10, files.length, true);
+  ev.setUint32(12, cdSize, true);
+  ev.setUint32(16, offset, true);
+
+  const out = new Uint8Array(offset + cdSize + 22);
+  let pos = 0;
+  locals.forEach(c => { out.set(c, pos); pos += c.length; });
+  centrals.forEach(c => { out.set(c, pos); pos += c.length; });
+  out.set(eocd, pos);
+  return out;
+}
+
+/* ---------- 生成模板 ---------- */
+function xmlEsc(v){
+  return String(v == null ? '' : v)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+function colName(i){
+  let s = '', n = i + 1;
+  while(n > 0){ const m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = Math.floor((n - 1) / 26); }
+  return s;
+}
+function sheetXml(rows){
+  const body = rows.map((row, ri) => {
+    const cells = row.map((v, ci) =>
+      `<c r="${colName(ci)}${ri + 1}" t="inlineStr"><is><t xml:space="preserve">${xmlEsc(v)}</t></is></c>`
+    ).join('');
+    return `<row r="${ri + 1}">${cells}</row>`;
+  }).join('');
+  return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+    + '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+    + '<cols><col min="1" max="1" width="14" customWidth="1"/><col min="2" max="4" width="17" customWidth="1"/>'
+    + '<col min="5" max="6" width="46" customWidth="1"/><col min="7" max="7" width="28" customWidth="1"/>'
+    + '<col min="8" max="8" width="10" customWidth="1"/></cols>'
+    + '<sheetData>' + body + '</sheetData></worksheet>';
+}
+function buildTemplateBytes(){
+  const files = [
+    { name:'[Content_Types].xml', data:
+      '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+      + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+      + '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
+      + '<Default Extension="xml" ContentType="application/xml"/>'
+      + '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'
+      + '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'
+      + '</Types>' },
+    { name:'_rels/.rels', data:
+      '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+      + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+      + '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>'
+      + '</Relationships>' },
+    { name:'xl/workbook.xml', data:
+      '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+      + '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+      + '<sheets><sheet name="国别风险" sheetId="1" r:id="rId1"/></sheets></workbook>' },
+    { name:'xl/_rels/workbook.xml.rels', data:
+      '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+      + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+      + '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>'
+      + '</Relationships>' },
+    { name:'xl/worksheets/sheet1.xml', data: sheetXml([IMPORT_HEADERS].concat(TEMPLATE_SAMPLE)) }
+  ];
+  return zipStore(files);
+}
+function downloadTemplate(){
+  const blob = new Blob([buildTemplateBytes()], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = '国别风险库导入模板.xlsx';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+  toast('模板已下载，请按表头填写后上传');
+}
+
+/* ---------- 解析 xlsx ---------- */
+function unxml(v){
+  return String(v)
+    .replace(/&#x([0-9a-fA-F]+);/g, (m, h) => String.fromCodePoint(parseInt(h, 16)))
+    .replace(/&#(\d+);/g, (m, d) => String.fromCodePoint(+d))
+    .replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, '&');
+}
+function textsOf(xml){
+  let out = '';
+  const re = /<t[^>]*>([\s\S]*?)<\/t>/g;
+  let m;
+  while((m = re.exec(xml))) out += unxml(m[1]);
+  return out;
+}
+async function inflateRaw(u8){
+  if(typeof DecompressionStream === 'undefined') throw new Error('当前浏览器不支持解析，请使用 Chrome / Edge');
+  const stream = new Blob([u8]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+  return new Uint8Array(await new Response(stream).arrayBuffer());
+}
+async function readXlsxRows(buf){
+  const u8 = new Uint8Array(buf);
+  const dv = new DataView(buf);
+  let eocd = -1;
+  const floor = Math.max(0, u8.length - 66000);
+  for(let i = u8.length - 22; i >= floor; i--){
+    if(dv.getUint32(i, true) === 0x06054b50){ eocd = i; break; }
+  }
+  if(eocd < 0) throw new Error('文件格式无法识别，请在 Excel 中另存为 .xlsx 后重试');
+  const total = dv.getUint16(eocd + 10, true);
+  let off = dv.getUint32(eocd + 16, true);
+  const map = {};
+  for(let i = 0; i < total; i++){
+    if(dv.getUint32(off, true) !== 0x02014b50) break;
+    const method = dv.getUint16(off + 10, true);
+    const csize  = dv.getUint32(off + 20, true);
+    const nlen   = dv.getUint16(off + 28, true);
+    const elen   = dv.getUint16(off + 30, true);
+    const clen   = dv.getUint16(off + 32, true);
+    const lho    = dv.getUint32(off + 42, true);
+    const name   = new TextDecoder('utf-8').decode(u8.subarray(off + 46, off + 46 + nlen));
+    const lnlen  = dv.getUint16(lho + 26, true);
+    const lelen  = dv.getUint16(lho + 28, true);
+    const start  = lho + 30 + lnlen + lelen;
+    map[name] = { method, raw: u8.subarray(start, start + csize) };
+    off += 46 + nlen + elen + clen;
+  }
+  const readText = async n => {
+    const e = map[n];
+    if(!e) return '';
+    const bytes = e.method === 0 ? e.raw : await inflateRaw(e.raw);
+    return new TextDecoder('utf-8').decode(bytes);
+  };
+
+  const shared = [];
+  const sharedXml = await readText('xl/sharedStrings.xml');
+  if(sharedXml){
+    const re = /<si>([\s\S]*?)<\/si>/g;
+    let m;
+    while((m = re.exec(sharedXml))) shared.push(textsOf(m[1]));
+  }
+
+  const sheetName = Object.keys(map).find(n => /^xl\/worksheets\/sheet\d+\.xml$/.test(n));
+  if(!sheetName) throw new Error('未找到工作表，请使用「下载模板」中的文件');
+  const sheet = await readText(sheetName);
+  return parseSheetXml(sheet, shared);
+}
+function parseSheetXml(xml, shared){
+  const rows = [];
+  const rowRe = /<row[^>]*>([\s\S]*?)<\/row>/g;
+  let rm;
+  while((rm = rowRe.exec(xml))){
+    const cells = [];
+    const cRe = /<c([^>]*)>([\s\S]*?)<\/c>/g;
+    let cm;
+    while((cm = cRe.exec(rm[1]))){
+      const attrs = cm[1], inner = cm[2];
+      const ref = /r="([A-Z]+)\d+"/.exec(attrs);
+      if(!ref) continue;
+      const ci = ref[1].split('').reduce((n, ch) => n * 26 + (ch.charCodeAt(0) - 64), 0) - 1;
+      const typeM = /t="([^"]+)"/.exec(attrs);
+      const type = typeM ? typeM[1] : 'n';
+      let val = '';
+      if(type === 'inlineStr'){
+        val = textsOf(inner);
+      }else{
+        const vm = /<v>([\s\S]*?)<\/v>/.exec(inner);
+        if(vm) val = (type === 's') ? (shared[+vm[1]] || '') : unxml(vm[1]);
+      }
+      cells[ci] = String(val).trim();
+    }
+    rows.push(cells);
+  }
+  return rows;
+}
+
+/* ---------- 导入数据 ---------- */
+function importRows(rows){
+  if(!rows || !rows.length) throw new Error('文件内容为空');
+  const header = rows[0] || [];
+  const col = {};
+  Object.keys(FIELD_ALIAS).forEach(k => col[k] = -1);
+  for(let c = 0; c < header.length; c++){
+    const h = String(header[c] == null ? '' : header[c]).replace(/[\s:：]/g, '');
+    if(!h) continue;
+    Object.keys(FIELD_ALIAS).forEach(k => {
+      if(col[k] < 0 && FIELD_ALIAS[k].indexOf(h) >= 0) col[k] = c;
+    });
+  }
+  if(['country','type','indicator','point'].some(k => col[k] < 0)){
+    throw new Error('表头与模板不一致，请先「下载模板」按表头填写');
+  }
+
+  const pick = (row, k) => {
+    if(col[k] < 0) return '';
+    const v = row[col[k]];
+    return String(v == null ? '' : v).trim();
+  };
+
+  let added = 0, skipped = 0;
+  rows.slice(1).forEach(row => {
+    if(!row || !row.length) return;
+    if([...row].every(v => !String(v == null ? '' : v).trim())) return;
+
+    const rec = {
+      country:   pick(row, 'country'),
+      stage:     pick(row, 'stage'),
+      type:      pick(row, 'type'),
+      scope:     pick(row, 'scope'),
+      indicator: pick(row, 'indicator'),
+      point:     pick(row, 'point'),
+      remark:    pick(row, 'remark'),
+      status:    pick(row, 'status') === '停用' ? '停用' : '启用'
+    };
+    if(!rec.country || !rec.type || !rec.indicator || !rec.point){ skipped++; return; }
+    if(STAGES.indexOf(rec.stage) < 0) rec.stage = STAGES[0];
+    if(rec.scope && SCOPE_TYPES.indexOf(rec.scope) < 0) rec.scope = '人员';
+
+    rec.id = nid();
+    rec.updateTime = today();
+    risks.unshift(rec);
+
+    if(!countryRows.some(c => c.country === rec.country)){
+      countryRows.unshift({
+        id:'C' + Date.now() + added, country:rec.country,
+        creator:CURRENT_USER.name, status:'打开', updateTime:today()
+      });
+    }
+    added++;
+  });
+
+  if(!added) throw new Error(skipped ? '未导入任何数据，请检查必填列（国别 / 风险类型 / 风险研判 / 风险提示）' : '文件中没有可导入的数据行');
+  renderRisks();
+  renderCountries();
+  return { added, skipped };
+}
+
+/* ---------- 上传弹窗交互 ---------- */
+let importFile = null;
+let importState = 'none';   // none | doing | done | fail
+
+function fmtSize(n){
+  if(n < 1024) return n + ' B';
+  if(n < 1024 * 1024) return (n / 1024).toFixed(1) + ' KB';
+  return (n / 1024 / 1024).toFixed(2) + ' MB';
+}
+function renderUpTable(){
+  const body = $('#upBody');
+  if(!body) return;
+  if(!importFile){
+    body.innerHTML = '<tr><td colspan="4" class="up-empty" style="height:56px">暂无数据</td></tr>';
+    return;
+  }
+  const st = ({
+    none:   ['待上传', 'wait'],
+    doing:  ['上传中…', 'doing'],
+    done:   ['上传成功', 'done'],
+    fail:   ['上传失败', 'fail']
+  })[importState] || ['待上传', 'wait'];
+
+  body.innerHTML = `
+    <tr>
+      <td>
+        <div class="up-name">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
+          <span title="${esc(importFile.name)}">${esc(importFile.name)}</span>
+        </div>
+      </td>
+      <td>${fmtSize(importFile.size)}</td>
+      <td><span class="up-status ${st[1]}">${st[0]}</span></td>
+      <td class="c">${importState === 'done' ? '<span style="color:#A8ADB8">--</span>' : '<button class="up-del" data-act="up-remove">删除</button>'}</td>
+    </tr>`;
+}
+function openImport(){
+  importFile = null;
+  importState = 'none';
+  const input = $('#upInput');
+  if(input) input.value = '';
+  $('#upNote').innerHTML = '请先点击「下载模板」，按模板表头填写国别、阶段、风险类型、适用范围、风险研判、风险提示、备注与状态；单次最多上传 1 个文件。';
+  renderUpTable();
+  openOverlay('ovImport');
+}
+function pickImportFile(file){
+  if(!file) return;
+  if(!/\.(xlsx|xls)$/i.test(file.name)){
+    toast('仅支持 .xlsx / .xls 格式的文件', 'error');
+    return;
+  }
+  if(file.size > 20 * 1024 * 1024){
+    toast('文件不能超过 20MB', 'error');
+    return;
+  }
+  importFile = file;
+  importState = 'none';
+  renderUpTable();
+}
+async function startImport(){
+  if(!importFile){ toast('请先选择需要上传的文件', 'error'); return; }
+  if(importState === 'doing') return;
+  importState = 'doing';
+  renderUpTable();
+  try{
+    const buf = await importFile.arrayBuffer();
+    const rows = await readXlsxRows(buf);
+    const res = importRows(rows);
+    importState = 'done';
+    renderUpTable();
+    toast(`导入成功：新增 ${res.added} 条${res.skipped ? '，跳过 ' + res.skipped + ' 条（必填项为空）' : ''}`);
+    setTimeout(() => {
+      closeOverlay('ovImport');
+      rm.country = ''; rm.stage = ''; rm.type = ''; rm.scope = ''; rm.status = '';
+      rm.indicator = ''; rm.point = ''; rm.remark = ''; rm.page = 1;
+      if($('#rmCountry')){
+        ['#rmCountry','#rmStage','#rmType','#rmScope','#rmStatus'].forEach(x => {
+          $(x).value = ''; $(x).classList.remove('filled');
+        });
+        ['#rmIndicator','#rmPoint','#rmRemark'].forEach(x => { $(x).value = ''; });
+      }
+      renderRisks();
+    }, 700);
+  }catch(err){
+    importState = 'fail';
+    renderUpTable();
+    $('#upNote').innerHTML = '<b style="color:#FA5151">解析失败：</b>' + esc(err.message || '文件无法解析');
+    toast(err.message || '文件解析失败', 'error');
+  }
+}
+
+/* 上传区事件 */
+(function bindImport(){
+  const zone = $('#upZone'), input = $('#upInput');
+  if(!zone || !input) return;
+  zone.addEventListener('click', () => { input.value = ''; input.click(); });
+  input.addEventListener('change', () => pickImportFile(input.files && input.files[0]));
+  ['dragenter','dragover'].forEach(t => zone.addEventListener(t, e => {
+    e.preventDefault(); zone.classList.add('dragover');
+  }));
+  ['dragleave','dragend'].forEach(t => zone.addEventListener(t, e => {
+    e.preventDefault(); zone.classList.remove('dragover');
+  }));
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('dragover');
+    const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    pickImportFile(f);
+  });
+})();
 
 /* =========================================================
    初始化
